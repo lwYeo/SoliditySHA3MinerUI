@@ -1,0 +1,7 @@
+.vs/
+obj/
+Debug/
+Release/
+packages/
+*.pdb
+*.csproj.user

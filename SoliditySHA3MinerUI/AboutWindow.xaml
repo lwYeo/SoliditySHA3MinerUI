@@ -1,0 +1,60 @@
+﻿<Controls:MetroWindow x:Class="SoliditySHA3MinerUI.AboutWindow"
+                      xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:appProp="clr-namespace:SoliditySHA3MinerUI.Properties"
+                      mc:Ignorable="d"
+                      Title="About SoliditySHA3Miner"
+                      ResizeMode="NoResize"
+                      Height="350"
+                      Width="350"
+                      WindowStartupLocation="CenterOwner">
+    <Grid Name="grdAbout">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.32*" />
+            <RowDefinition Height="0.28*" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Rectangle Name="retHeader"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="2"
+                   Fill="{DynamicResource AccentColorBrush}" />
+        <TextBlock Name="txbTitle"
+                   Grid.Row="0"
+                   Grid.ColumnSpan="2"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   Margin="10,10,0,0"
+                   Text="SoliditySHA3Miner (GUI)"
+                   FontSize="20" />
+        <TextBlock Name="txbDescription"
+                   Grid.Row="1"
+                   Grid.ColumnSpan="2"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="10,0,10,0"
+                   FontSize="12"
+                   Text=
+"SoliditySHA3MinerUI&#x0a;
+Version {0}.{1}.{2}&#x0a;
+{3}&#x0a;
+License:" />
+        <TextBox Name="txtLicense"
+                 Grid.Row="2"
+                 Grid.ColumnSpan="2"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 Margin="10,0,10,10"
+                 VerticalScrollBarVisibility="Visible"
+                 Text="{x:Static appProp:Resources.LICENSE}"
+                 FontSize="11"
+                 TextWrapping="Wrap" />
+    </Grid>
+</Controls:MetroWindow>

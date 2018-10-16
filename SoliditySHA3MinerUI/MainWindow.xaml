@@ -1,0 +1,769 @@
+﻿<Controls:MetroWindow x:Class="SoliditySHA3MinerUI.MainWindow"
+                      xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                      xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:System="clr-namespace:System;assembly=mscorlib"
+                      xmlns:Globalization="clr-namespace:System.Globalization;assembly=mscorlib"
+                      xmlns:jlinq ="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+                      xmlns:app="clr-namespace:SoliditySHA3MinerUI"
+                      xmlns:appProp="clr-namespace:SoliditySHA3MinerUI.Properties"
+                      mc:Ignorable="d"
+                      Name="SoliditySHA3Miner"
+                      Title="SoliditySHA3Miner"
+                      Height="450" MinHeight="450"
+                      Width="800" MinWidth="800"
+                      WindowStartupLocation="CenterScreen"
+                      Loaded="SoliditySHA3Miner_Loaded"
+                      Closing="SoliditySHA3Miner_Closing">
+    <Controls:MetroWindow.Resources>
+        <app:MethodToValueConverter x:Key="MethodToValueConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <HierarchicalDataTemplate DataType="{x:Type jlinq:JArray}"
+                                  ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children', ConverterCulture={x:Static Globalization:CultureInfo.InvariantCulture}}">
+            <TextBlock Text="List" />
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type jlinq:JProperty}"
+                                  ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children', ConverterCulture={x:Static Globalization:CultureInfo.InvariantCulture}}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Path=Name, Mode=OneWay}" />
+            </StackPanel>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}"
+                                  ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children', ConverterCulture={x:Static Globalization:CultureInfo.InvariantCulture}}">
+            <TextBlock Text="{Binding Path=Type, Mode=OneWay}" />
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type jlinq:JConstructor}"
+                                  ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children', ConverterCulture={x:Static Globalization:CultureInfo.InvariantCulture}}">
+            <TextBlock Text="Constructor" />
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type jlinq:JRaw}"
+                                  ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children', ConverterCulture={x:Static Globalization:CultureInfo.InvariantCulture}}">
+            <TextBlock Text="Raw" />
+        </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type jlinq:JValue}">
+            <StackPanel Orientation="Horizontal">
+                <TextBox Name="txtSettingValue"
+                         Text="{Binding Path=Value, Mode=TwoWay}"
+                         MinWidth="150"
+                         TextChanged="txtSettingValue_TextChanged" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type System:Boolean}">
+            <CheckBox Name="chkSettingValue" IsChecked="{Binding Path=Value, Mode=TwoWay}" />
+        </DataTemplate>
+    </Controls:MetroWindow.Resources>
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands>
+            <Button Name="btnLogs"
+                    Click="btnLogs_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20"
+                               Height="20"
+                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill"
+                                         Visual="{iconPacks:Modern Kind=Book}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Text="Logs"
+                               Margin="4 0 0 0"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button Name="btnSettings"
+                    Click="btnSettings_Button_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20"
+                               Height="20"
+                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill"
+                                         Visual="{iconPacks:Modern Kind=settings}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Text="Settings"
+                               Margin="4 0 0 0"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button Name="btnPreLaunchCmd"
+                    Click="btnPreLaunchCmd_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20"
+                               Height="20"
+                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill"
+                                         Visual="{iconPacks:Modern Kind=app}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Text="Pre-launch commands"
+                               Margin="4 0 0 0"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button Name="btnAbout"
+                    Click="btnAbout_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="10"
+                               Height="14"
+                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill"
+                                         Visual="{iconPacks:Modern Kind=Question}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            About SoliditySHA3Miner
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                </StackPanel>
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+    <Controls:MetroWindow.Flyouts>
+        <Controls:FlyoutsControl>
+            <Controls:Flyout Name="foLogs"
+                             Position="Right"
+                             Header="Miner Logs"
+                             HorizontalContentAlignment="Right"
+                             IsOpenChanged="foLogs_IsOpenChanged">
+                <Grid Name="grdLogs">
+                    <Button Name="btnClearLogs"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Width="80"
+                            Height="26"
+                            FontSize="10"
+                            Style="{DynamicResource AccentedSquareButtonStyle}"
+                            Click="btnClearLogs_Click">
+                        Clear Logs
+                        <Button.RenderTransform>
+                            <TranslateTransform X="-140"
+                                                Y="-32" />
+                        </Button.RenderTransform>
+                    </Button>
+                    <Controls:ToggleSwitch Name="tswLogAutoScroll"
+                                           HorizontalAlignment="Right"
+                                           Content="Auto scroll logs"
+                                           IsChecked="True">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="0.7"
+                                                ScaleY="0.67" />
+                                <TranslateTransform X="50"
+                                                    Y="-30" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
+                    <RichTextBox Name="rtbLogs"
+                                 IsReadOnly="True">
+                        <RichTextBox.Resources>
+                            <Style TargetType="{x:Type Paragraph}">
+                                <Setter Property="Margin" Value="0" />
+                            </Style>
+                        </RichTextBox.Resources>
+                    </RichTextBox>
+                </Grid>
+            </Controls:Flyout>
+            <Controls:Flyout Name="foSettings"
+                             Header="Settings"
+                             Position="Right"
+                             HorizontalContentAlignment="Right"
+                             IsOpenChanged="foSettings_IsOpenChanged">
+                <Grid Name="grdSettings">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="30" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Controls:ToggleSwitch Name="tswDarkTheme"
+                                           Grid.Row="0"
+                                           Grid.Column="0"
+                                           HorizontalAlignment="Left"
+                                           Content="Dark Theme"
+                                           Width="216"
+                                           Margin="20 0 0 0"
+                                           IsChecked="{Binding Source={x:Static appProp:Settings.Default}, Path=DarkTheme, Mode=TwoWay}"
+                                           IsCheckedChanged="tswDarkTheme_IsCheckedChanged">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="0.8"
+                                                ScaleY="0.8" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
+                    <Controls:ToggleSwitch Name="tswAllowAnimation"
+                                           Grid.Row="1"
+                                           Grid.Column="0"
+                                           HorizontalAlignment="Left"
+                                           Content="Allow Animation"
+                                           Width="216"
+                                           Margin="20 0 0 0"
+                                           IsChecked="{Binding Source={x:Static appProp:Settings.Default}, Path=AllowAnimation, Mode=TwoWay}"
+                                           IsCheckedChanged="tswDarkTheme_IsCheckedChanged">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="0.8"
+                                                ScaleY="0.8" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
+                    <Controls:ToggleSwitch Name="tswAutoLaunch"
+                                           Grid.Row="2"
+                                           Grid.Column="0"
+                                           HorizontalAlignment="Left"
+                                           Content="Auto Launch"
+                                           Width="216"
+                                           Margin="20 0 0 0"
+                                           IsChecked="{Binding Source={x:Static appProp:Settings.Default}, Path=AutoLaunch, Mode=TwoWay}"
+                                           IsCheckedChanged="tswAutoLaunch_IsCheckedChanged">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="0.8"
+                                                ScaleY="0.8" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
+                    <TextBlock Name="txbCheckConnectionInterval"
+                               Grid.Column="1"
+                               Grid.Row="0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Margin="10 -10 0 0"
+                               Text="Check Connection Interval (sec)"
+                               TextWrapping="Wrap"
+                               FontSize="13" />
+                    <Controls:NumericUpDown Name="numCheckConnectionInterval"
+                                            Grid.Column="1"
+                                            Grid.Row="1"
+                                            HorizontalAlignment="Left"
+                                            Width="110"
+                                            Margin="10 0 0 0"
+                                            Minimum="1"
+                                            Value="{Binding Source={x:Static appProp:Settings.Default}, Path=CheckConnectionInterval, Mode=TwoWay}"
+                                            ValueChanged="numScaleSize_ValueChanged" />
+                    <TextBlock Name="txbCheckVersionInterval"
+                               Grid.Column="2"
+                               Grid.Row="0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Margin="10 -10 0 0"
+                               Text="Check Version &#x0a;Interval (sec)"
+                               TextWrapping="Wrap"
+                               FontSize="13" />
+                    <Controls:NumericUpDown Name="numCheckVersionInterval"
+                                            Grid.Column="2"
+                                            Grid.Row="1"
+                                            HorizontalAlignment="Left"
+                                            Width="110"
+                                            Margin="10 0 0 0"
+                                            Minimum="1"
+                                            Value="{Binding Source={x:Static appProp:Settings.Default}, Path=CheckVersionInterval, Mode=TwoWay}"
+                                            ValueChanged="numScaleSize_ValueChanged" />
+                    <TextBlock Name="txbScaleSizeLabel"
+                               Grid.Column="3"
+                               Grid.Row="0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Margin="10 0 0 0"
+                               Text="UI Scaling"
+                               FontSize="13" />
+                    <Controls:NumericUpDown Name="numScaleSize"
+                                            Grid.Column="3"
+                                            Grid.Row="1"
+                                            HorizontalAlignment="Left"
+                                            Width="90"
+                                            Margin="10 0 0 0"
+                                            Minimum="0.5"
+                                            Maximum="4.0"
+                                            Interval="0.05"
+                                            StringFormat="N2"
+                                            HasDecimals="True"
+                                            Value="{Binding Source={x:Static appProp:Settings.Default}, Path=ScaleSize, Mode=TwoWay}"
+                                            ValueChanged="numScaleSize_ValueChanged" />
+                    <TreeView Name="trvSettings"
+                              Grid.Row="3"
+                              Grid.Column="0"
+                              Grid.ColumnSpan="5"
+                              FontSize="14">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded"
+                                        Value="True" />
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                    </TreeView>
+                </Grid>
+            </Controls:Flyout>
+            <Controls:Flyout Name="foPreLaunchCmd"
+                             Header="Pre-launch commands"
+                             Position="Right"
+                             HorizontalContentAlignment="Right"
+                             IsOpenChanged="foPreLaunchCmd_IsOpenChanged">
+                <Grid>
+                    <TextBox Name="txtPreLaunchCmd"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         Text="{Binding Source={x:Static appProp:Settings.Default}, Path=PreLaunchScript, Mode=TwoWay}"
+                         TextChanged="txtPreLaunchCmd_TextChanged" />
+                    <TextBlock Margin="5,2"
+                               MinWidth="50"
+                               Foreground="Gray"
+                               Visibility="{Binding ElementName=txtPreLaunchCmd, Path=Text.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               Text=":: Below is a sample script, no actual script is in use &#x0a;
+SET POWER=70 &#x0a;
+SET VOLT=850000 &#x0a;
+SET CORE=200 &#x0a;
+SET MEMORY=-500 &#x0a;
+&#x0a;
+SET GPU0=-setpowertarget:0,%POWER% -lockVoltagePoint:0,%VOLT% -setBaseClockOffset:0,0,%CORE% -setMemoryClockOffset:0,0,%MEMORY% &#x0a;
+SET GPU1=-setpowertarget:1,%POWER% -lockVoltagePoint:1,%VOLT% -setBaseClockOffset:1,0,%CORE% -setMemoryClockOffset:1,0,%MEMORY% &#x0a;
+SET GPU2=-setpowertarget:2,%POWER% -lockVoltagePoint:2,%VOLT% -setBaseClockOffset:2,0,%CORE% -setMemoryClockOffset:2,0,%MEMORY% &#x0a;
+&#x0a;
+nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
+                </Grid>
+            </Controls:Flyout>
+        </Controls:FlyoutsControl>
+    </Controls:MetroWindow.Flyouts>
+    <Viewbox Name="viewMain">
+        <Grid Name="grdApplication"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+            <Border Name="brdAppMainControls"
+                    BorderThickness="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="135"
+                    Height="135"
+                    Margin="10,10,0,0">
+                <Grid Name="grdAppMainControls">
+                    <TextBlock Name="txbVersionLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,10,0,0"
+                               Text="Miner / GUI Version"
+                               Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                    <TextBlock Name="txbMinerVersion"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,31,0,0"
+                               Text="-.-"
+                               TextAlignment="Right"
+                               Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                               Width="33" />
+                    <Rectangle Name="retMinerVersion"
+                               Margin="48,31,69,86"
+                               Fill="{DynamicResource GrayNormalBrush}"
+                               MouseUp="retMinerVersion_MouseUp">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Visual="{iconPacks:Modern Kind=InformationCircle}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            Miner not found
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                    <TextBlock Name="txbUIVersion"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="33"
+                               Margin="69,31,0,0"
+                               Text="-.-"
+                               TextAlignment="Right"
+                               Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                    <Rectangle Name="retUIVersion"
+                               Margin="107,31,10,86"
+                               Fill="{DynamicResource GrayNormalBrush}"
+                               MouseUp="retMinerVersion_MouseUp">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Visual="{iconPacks:Modern Kind=InformationCircle}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            Your are using the latest UI version
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                    <TextBlock Name="txbdotnetCoreVersionLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,52,0,0"
+                               Text="Dotnet Core Version"
+                               Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                    <TextBlock Name="txbDotnetCoreVersion"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="48"
+                               Margin="23,73,0,0"
+                               Text="-.-"
+                               TextAlignment="Right"
+                               Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                    <Rectangle Name="retDotnetCoreVersion"
+                               Margin="76,73,41,44"
+                               Fill="{DynamicResource GrayNormalBrush}"
+                               MouseUp="retDotnetCoreVersion_MouseUp">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Visual="{iconPacks:Modern Kind=InformationCircle}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            Invalid version, click here to go to Dotnet Core download page
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                    <TextBlock Name="txbLaunchLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,107,0,0"
+                               Text="Launch" />
+                    <Rectangle Name="retLaunch"
+                               Margin="58,103,50,4"
+                               Fill="{DynamicResource GrayNormalBrush}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Visual="{iconPacks:Modern Kind=RocketRotated45}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            Waiting for Launch
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                    <Controls:ToggleSwitch Name="tswLaunch"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Width="70"
+                                           Margin="75,97,-12.2,0"
+                                           FontSize="14"
+                                           Content=""
+                                           IsCheckedChanged="tswLaunch_IsCheckedChanged">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <RotateTransform Angle="-90" />
+                                <ScaleTransform ScaleX="0.5"
+                                                ScaleY="0.5" />
+                                <TranslateTransform X="30"
+                                                    Y="35" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
+                </Grid>
+            </Border>
+            <Border Name="brdPoolNetwork"
+                    Grid.ColumnSpan="2"
+                    BorderThickness="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="632"
+                    Height="105"
+                    Margin="150,10,0,0">
+                <Grid Name="grdPoolNetwork">
+                    <Rectangle Name="retConnection"
+                               Margin="140,11,470,72"
+                               Fill="{DynamicResource GrayNormalBrush}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Visual="{iconPacks:Modern Kind=NetworkDisconnect}" />
+                        </Rectangle.OpacityMask>
+                        <Rectangle.ToolTip>
+                            Disconnected
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                    <TextBlock Name="txbPoolNetworkHeader"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,10,0,0"
+                               Text="Pool / Network"
+                               FontSize="18" />
+                    <TextBlock Name="txbUrlLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,39,0,0"
+                               Text="URL: " />
+                    <TextBlock Name="txbMinerAddressLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="235,39,0,0"
+                               Text="Miner Address: " />
+                    <TextBlock Name="txbURL"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="42,39,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.MiningURL}" />
+                    <TextBlock Name="txbMinerAddress"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="323,39,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.MinerAddress}" />
+                    <TextBlock Name="txbCurrentDifficultyLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,60,0,0"
+                               Text="Current Difficulty: " />
+                    <TextBlock Name="txbCurrentChallengeLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,81,0,0"
+                               Text="Current Challenge: " />
+                    <TextBlock Name="txbCurrentDifficulty"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="117,60,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentDifficulty_String}" />
+                    <TextBlock Name="txbLastSubmitLatencyLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="235,60,0,0"
+                               Text="Last Submit Latency: " />
+                    <TextBlock Name="txbLastSubmitLatency"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="352,60,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.LastSubmitLatencyMS_String}" />
+                    <TextBlock Name="txbLatencyLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="470,60,0,0"
+                               Text="Latency: " />
+                    <TextBlock Name="txbLatency"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="521,60,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.LatencyMS_String}" />
+                    <TextBlock Name="txbCurrentChallenge"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="117,81,0,0"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentChallenge}" />
+                </Grid>
+            </Border>
+            <Border Name="brdSummary"
+                    BorderThickness="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="135"
+                    Height="246"
+                    Margin="10,149,0,0">
+                <Grid Name="grdSummary">
+                    <TextBlock Name="txbSummary"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,2,0,0"
+                               Text="Summary"
+                               FontSize="18" />
+                    <TextBlock Name="txbHashRateLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,36,0,0"
+                               Text="Hashrate"
+                               FontSize="14" />
+                    <TextBlock Name="txbHashrateLocalLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,55,0,0"
+                               Text="Local" />
+                    <TextBlock Name="txbHashrateEffectiveLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,71,0,0"
+                               Text="Effective" />
+                    <TextBlock Name="txbHashrateLuckLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,87,0,0"
+                               Text="Luck" />
+                    <TextBlock Name="txbHashrateLocal"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="63"
+                               Margin="60,55,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.TotalHashRate_String}" />
+                    <TextBlock Name="txbHashrateEffective"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="63"
+                               Margin="60,71,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.EffectiveHashRate_String}" />
+                    <TextBlock Name="txbHashrateLuck"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="63"
+                               Margin="60,87,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.HashRateLuck_String}" />
+                    <TextBlock Name="txbSubmissionLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,108,0,0"
+                               Text="Submissions"
+                               FontSize="14" />
+                    <TextBlock Name="txbAcceptLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,127,0,0"
+                               Text="Accepted" />
+                    <TextBlock Name="txbRejectLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,145,0,0"
+                               Text="Rejected" />
+                    <TextBlock Name="txbSubmission"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="32"
+                               Margin="91,110,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.SubmissionRate_String}" />
+                    <TextBlock Name="txbAcceptedShares"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="58"
+                               Margin="65,128,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.AcceptedShares_String}" />
+                    <TextBlock Name="txbRejectedShares"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="58"
+                               Margin="65,145,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.RejectedShares_String}" />
+                    <TextBlock Name="txbUptimeLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,172,0,0"
+                               Text="Uptime" />
+                    <TextBlock Name="txbUptime"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="69"
+                               Margin="54,173,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.Uptime_String}" />
+                    <TextBlock Name="txbCpuLoadLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,192,0,0"
+                               Text="CPU Load"
+                               ToolTip="CPU average load" />
+                    <TextBlock Name="txbCpuLoad"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="50"
+                               Margin="73,193,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CpuLoad_String}" />
+                    <TextBlock Name="txbMaxGPUTempLabel"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,212,0,0"
+                               Text="GPU Temp."
+                               ToolTip="Maximum GPU temperature" />
+                    <TextBlock Name="txbGpuMaxTemperature"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Width="50"
+                               Margin="73,213,0,0"
+                               FontSize="11"
+                               TextAlignment="Right"
+                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.GpuMaxTemperature_String}" />
+                </Grid>
+            </Border>
+            <Border Name="brdDashboard"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    BorderThickness="1"
+                    Width="634"
+                    Height="280"
+                    Margin="150,115,0,0">
+                <Grid Name="grdDashboard">
+                    <TextBlock Name="txbDashboard"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               Margin="10,0,0,0"
+                               FontSize="18"
+                               Text="Dashboard" />
+                    <DataGrid Name="dgdDashBoard"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Top"
+                              FontSize="9"
+                              Width="610"
+                              Height="280"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              CanUserResizeColumns="False"
+                              CanUserReorderColumns="False"
+                              VerticalScrollBarVisibility="Visible"
+                              ItemsSource="{Binding Path=MinerProcessor.MinerReport.DashboardList, Mode=OneWay}"
+                              LoadingRow="dgdDashBoard_LoadingRow">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader"
+                                   BasedOn="{StaticResource MetroDataGridColumnHeader}">
+                                <Setter Property="HorizontalContentAlignment"
+                                        Value="Left" />
+                                <Setter Property="Margin"
+                                        Value="-8 0 0 0" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell"
+                                   BasedOn="{StaticResource MetroDataGridCell}">
+                                <Setter Property="TextBlock.VerticalAlignment"
+                                        Value="Center" />
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID"
+                                                Binding="{Binding PciBusID}"
+                                                Width="28" />
+                            <DataGridTextColumn Header="Name"
+                                                Binding="{Binding Name}"
+                                                Width="125"
+                                                MaxWidth="125" />
+                            <DataGridTextColumn Header="Hashrate"
+                                                Binding="{Binding Hashrate_String}"
+                                                Width="70"
+                                                MaxWidth="70" />
+                            <DataGridTextColumn Header="Intense"
+                                                Binding="{Binding Intensity_String}"
+                                                Width="50" />
+                            <DataGridTextColumn Header="Load"
+                                                Binding="{Binding UtilizationPercent_String}"
+                                                Width="40" />
+                            <DataGridTextColumn Header="Temp"
+                                                Binding="{Binding Temperature_String}"
+                                                Width="35" />
+                            <DataGridTextColumn Header="Tach"
+                                                Binding="{Binding FanTachometer_String}"
+                                                Width="50" />
+                            <DataGridTextColumn Header="Fan"
+                                                Binding="{Binding FanLevelPercent_String}"
+                                                Width="35" />
+                            <DataGridTextColumn Header="Core"
+                                                Binding="{Binding CoreClock_String}"
+                                                Width="55" />
+                            <DataGridTextColumn Header="Memory"
+                                                Binding="{Binding MemoryClock_String}"
+                                                Width="55" />
+                            <DataGridTextColumn Header="Power"
+                                                Binding="{Binding PowerLevelPercent_String}"
+                                                Width="45" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</Controls:MetroWindow>
