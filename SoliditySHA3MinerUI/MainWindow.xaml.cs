@@ -35,9 +35,9 @@ namespace SoliditySHA3MinerUI
         private AppTheme _currentTheme;
         private Accent _currentAccent;
 
-        private System.Timers.Timer _checkUiTimer;
-        private System.Timers.Timer _checkMinerVersionTimer;
-        private System.Timers.Timer _checkConnectionTimer;
+        private Timer _checkUiTimer;
+        private Timer _checkMinerVersionTimer;
+        private Timer _checkConnectionTimer;
 
         private JToken _savedSettings;
         private FileSystemWatcher _settingFileWatcher;
@@ -159,11 +159,11 @@ namespace SoliditySHA3MinerUI
 
                 if (Helper.FileSystem.MinerDirectory.Exists) InitializeSettingFileWatcher();
 
-                _checkConnectionTimer = new System.Timers.Timer(Properties.Settings.Default.CheckConnectionInterval * 1000) { AutoReset = true };
+                _checkConnectionTimer = new Timer(Properties.Settings.Default.CheckConnectionInterval * 1000) { AutoReset = true };
                 _checkConnectionTimer.Elapsed += _checkConnectionTimer_Elapsed;
                 _checkConnectionTimer.Start();
 
-                _checkMinerVersionTimer = new System.Timers.Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
+                _checkMinerVersionTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                 _checkMinerVersionTimer.Elapsed += _checkMinerVersionTimer_Elapsed;
                 _checkMinerVersionTimer.Start();
 
@@ -172,7 +172,7 @@ namespace SoliditySHA3MinerUI
                     Task.Delay(10000);
                     _checkUiTimer_Elapsed(this, null);
 
-                    _checkUiTimer = new System.Timers.Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
+                    _checkUiTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                     _checkUiTimer.Elapsed += _checkUiTimer_Elapsed;
                     _checkUiTimer.Start();
                 });
@@ -320,7 +320,7 @@ namespace SoliditySHA3MinerUI
 
         private void txtSettingValue_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (trvSettings.ItemsSource == null) return;
+            if (!IsInitialized || trvSettings.ItemsSource == null) return;
 
             ((e.Source as TextBox).DataContext as JValue).Value = (e.Source as TextBox).Text;
             _isSettingsChanged = true;
@@ -328,16 +328,19 @@ namespace SoliditySHA3MinerUI
 
         private void tswDarkTheme_IsCheckedChanged(object sender, EventArgs e)
         {
+            if (!IsInitialized) return;
             _isSettingsChanged = true;
         }
 
         private void tswAutoLaunch_IsCheckedChanged(object sender, EventArgs e)
         {
+            if (!IsInitialized) return;
             _isSettingsChanged = true;
         }
 
         private void numScaleSize_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
         {
+            if (!IsInitialized) return;
             _isSettingsChanged = true;
         }
 
@@ -661,7 +664,7 @@ namespace SoliditySHA3MinerUI
                     style: MessageDialogStyle.AffirmativeAndNegative) != MessageDialogResult.Affirmative)
                     return string.Empty;
             }
-            if (retMinerVersion.Fill == Brushes.Red)
+            if (!Helper.Processor.GetLocalMinerVersion(out Version localMinerVersion))
             {
                 if (await this.ShowMessageAsync("Miner not found", "Press OK to continue anyway",
                     style: MessageDialogStyle.AffirmativeAndNegative) != MessageDialogResult.Affirmative)
@@ -743,7 +746,7 @@ namespace SoliditySHA3MinerUI
 
         private void UpdateMiner(string filePath)
         {
-            var oldSettings = _savedSettings.DeepClone();
+            var oldSettings = _savedSettings?.DeepClone();
 
             if (Helper.FileSystem.UnzipMinerArchrive(filePath, Helper.FileSystem.MinerDirectory.FullName))
             {
@@ -803,9 +806,9 @@ namespace SoliditySHA3MinerUI
                     await Task.Delay(1000);
                     waitSeconds++;
                 }
-                while (!_isAPIReceived && waitSeconds < (45));
+                while ((bool)tswLaunch.IsChecked && !_isAPIReceived && waitSeconds < 45);
 
-                await controller?.CloseAsync();
+                if (controller != null) await controller.CloseAsync();
 
                 // Stop miner if no API available after 30 seconds
                 if (!_isAPIReceived) await StopMiner();
@@ -834,7 +837,10 @@ namespace SoliditySHA3MinerUI
             {
                 Helper.Processor.ShowMessageBox("Error stopping miner", ex.Message);
             }
-            finally { await controller?.CloseAsync(); }
+            finally
+            {
+                if (controller != null) await controller.CloseAsync();
+            }
         }
 
         #endregion User Action Processes
@@ -904,6 +910,8 @@ namespace SoliditySHA3MinerUI
 
         private void UpdateSettings(JToken oldSettings, JToken newSettings)
         {
+            if (oldSettings == null || newSettings == null) return;
+
             TraverseSettings(oldSettings, oldSetting =>
             {
                 if (!(newSettings.SelectToken(oldSetting.Path) is JValue newSetting)) return;
