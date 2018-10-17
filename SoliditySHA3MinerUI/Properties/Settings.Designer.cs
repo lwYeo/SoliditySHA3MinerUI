@@ -49,7 +49,7 @@ namespace SoliditySHA3MinerUI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.2")]
         public double ScaleSize {
             get {
                 return ((double)(this["ScaleSize"]));
@@ -73,7 +73,7 @@ namespace SoliditySHA3MinerUI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("600")]
+        [global::System.Configuration.DefaultSettingValueAttribute("3600")]
         public uint CheckVersionInterval {
             get {
                 return ((uint)(this["CheckVersionInterval"]));
