@@ -35,9 +35,9 @@ namespace SoliditySHA3MinerUI
         private AppTheme _currentTheme;
         private Accent _currentAccent;
 
-        private Timer _checkUiTimer;
-        private Timer _checkMinerVersionTimer;
-        private Timer _checkConnectionTimer;
+        private System.Timers.Timer _checkUiTimer;
+        private System.Timers.Timer _checkMinerVersionTimer;
+        private System.Timers.Timer _checkConnectionTimer;
 
         private JToken _savedSettings;
         private FileSystemWatcher _settingFileWatcher;
@@ -159,11 +159,11 @@ namespace SoliditySHA3MinerUI
 
                 if (Helper.FileSystem.MinerDirectory.Exists) InitializeSettingFileWatcher();
 
-                _checkConnectionTimer = new Timer(Properties.Settings.Default.CheckConnectionInterval * 1000) { AutoReset = true };
+                _checkConnectionTimer = new System.Timers.Timer(Properties.Settings.Default.CheckConnectionInterval * 1000) { AutoReset = true };
                 _checkConnectionTimer.Elapsed += _checkConnectionTimer_Elapsed;
                 _checkConnectionTimer.Start();
 
-                _checkMinerVersionTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
+                _checkMinerVersionTimer = new System.Timers.Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                 _checkMinerVersionTimer.Elapsed += _checkMinerVersionTimer_Elapsed;
                 _checkMinerVersionTimer.Start();
 
@@ -172,7 +172,7 @@ namespace SoliditySHA3MinerUI
                     Task.Delay(10000);
                     _checkUiTimer_Elapsed(this, null);
 
-                    _checkUiTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
+                    _checkUiTimer = new System.Timers.Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                     _checkUiTimer.Elapsed += _checkUiTimer_Elapsed;
                     _checkUiTimer.Start();
                 });
@@ -304,8 +304,12 @@ namespace SoliditySHA3MinerUI
             System.Diagnostics.Process.Start("https://aka.ms/dotnet-download");
         }
 
-        private void retMinerVersion_MouseUp(object sender, MouseButtonEventArgs e)
+        private async void retMinerVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            await StopMiner();
+
+            await SaveSettings();
+
             DownloadLatestMiner();
         }
 
@@ -409,38 +413,10 @@ namespace SoliditySHA3MinerUI
         {
             foSettings.Width = Width - (brdSummary.Width * 1.4);
 
-            if (foSettings.IsOpen) { InitializeSettingFileWatcher(); }
-            else if (_isSettingsChanged)
-            {
-                MessageDialogResult userResponse = await this.ShowMessageAsync("Settings changed",
-                                                                               "Press OK to save.",
-                                                                               style: MessageDialogStyle.AffirmativeAndNegative);
-                if (userResponse == MessageDialogResult.Affirmative)
-                {
-                    if (_minerInstance == null || !_minerInstance.IsRunning)
-                        MinerProcessor.SetSummaryToPreMineState();
-
-                    Properties.Settings.Default.Save();
-
-                    NormalizeSettings(trvSettings.ItemsSource as JToken, setting => NormalizeSettingsValue(setting));
-
-                    if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, Helper.FileSystem.MinerSettingsPath.FullName))
-                    {
-                        if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
-
-                        _checkConnectionTimer.Interval = Properties.Settings.Default.CheckConnectionInterval;
-                        _checkMinerVersionTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
-                        _checkUiTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
-                    }
-                    else
-                    {
-                        Helper.Processor.ShowMessageBox("Error", "Error saving settings.");
-                        foSettings.IsOpen = true;
-                        return;
-                    }
-                }
-                PopulateSettings(Helper.FileSystem.MinerSettingsPath.FullName);
-            }
+            if (foSettings.IsOpen)
+                InitializeSettingFileWatcher();
+            else
+                await SaveSettings();
         }
 
         private void foLogs_IsOpenChanged(object sender, RoutedEventArgs e)
@@ -746,19 +722,11 @@ namespace SoliditySHA3MinerUI
                             else
                             {
                                 filePath.Refresh();
-                                if (filePath.Exists)
-                                {
-                                    if (Helper.FileSystem.UnzipMinerArchrive(filePath.FullName, Helper.FileSystem.MinerDirectory.FullName))
-                                        _checkMinerVersionTimer_Elapsed(this, null);
-                                    else
-                                        Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive does not contain miner");
 
-                                    InitializeSettingFileWatcher();
-                                }
+                                if (filePath.Exists)
+                                    UpdateMiner(filePath.FullName);
                                 else
-                                {
                                     Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive missing");
-                                }
                             }
                             controller.CloseAsync();
                         });
@@ -771,6 +739,23 @@ namespace SoliditySHA3MinerUI
             {
                 Helper.Processor.ShowMessageBox("Error downloading miner", ex.Message);
             }
+        }
+
+        private void UpdateMiner(string filePath)
+        {
+            var oldSettings = _savedSettings.DeepClone();
+
+            if (Helper.FileSystem.UnzipMinerArchrive(filePath, Helper.FileSystem.MinerDirectory.FullName))
+            {
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(Helper.FileSystem.MinerSettingsPath.FullName);
+
+                UpdateSettings(oldSettings, _savedSettings);
+
+                _checkMinerVersionTimer_Elapsed(this, null);
+            }
+            else { Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive does not contain miner"); }
+
+            InitializeSettingFileWatcher();
         }
 
         private async Task LaunchMiner()
@@ -830,6 +815,7 @@ namespace SoliditySHA3MinerUI
         private async Task StopMiner()
         {
             if (_minerInstance == null) return;
+
             ProgressDialogController controller = null;
             try
             {
@@ -855,46 +841,122 @@ namespace SoliditySHA3MinerUI
 
         #region Settings
 
-        private void NormalizeSettings(JToken settings, Action<JValue> action)
+        private async Task SaveSettings()
+        {
+            if (_isSettingsChanged)
+            {
+                MessageDialogResult userResponse = await this.ShowMessageAsync("Settings changed",
+                                                                               "Press OK to save.",
+                                                                               style: MessageDialogStyle.AffirmativeAndNegative);
+                if (userResponse == MessageDialogResult.Affirmative)
+                {
+                    try
+                    {
+                        if (_minerInstance == null || !_minerInstance.IsRunning)
+                            MinerProcessor.SetSummaryToPreMineState();
+
+                        Properties.Settings.Default.Save();
+
+                        TraverseSettings(trvSettings.ItemsSource as JToken, setting => NormalizeSettingsValue(setting));
+
+                        if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, Helper.FileSystem.MinerSettingsPath.FullName))
+                        {
+                            if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
+
+                            _checkConnectionTimer.Interval = Properties.Settings.Default.CheckConnectionInterval;
+                            _checkMinerVersionTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
+                            _checkUiTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
+                        }
+                        else
+                        {
+                            foSettings.IsOpen = true;
+                            throw new Exception("Failed to save " + Helper.FileSystem.MinerSettingsPath.Name);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Helper.Processor.ShowMessageBox("Error saving settings.", ex.Message);
+                    }
+                }
+                PopulateSettings(Helper.FileSystem.MinerSettingsPath.FullName);
+            }
+        }
+
+        private void TraverseSettings(JToken settings, Action<JValue> action)
         {
             switch (settings.Type)
             {
                 case JTokenType.Object:
                     foreach (JProperty childSettings in settings.Children<JProperty>())
-                        NormalizeSettings(childSettings.Value, action);
+                        TraverseSettings(childSettings.Value, action);
                     break;
 
                 case JTokenType.Array:
                     foreach (JToken childSettings in settings.Children())
-                        NormalizeSettings(childSettings, action);
+                        TraverseSettings(childSettings, action);
                     break;
 
-                case JTokenType.String: // modified values will become string initially, rest can be skipped
+                default:
                     action(settings as JValue);
                     break;
             }
         }
 
+        private void UpdateSettings(JToken oldSettings, JToken newSettings)
+        {
+            TraverseSettings(oldSettings, oldSetting =>
+            {
+                if (!(newSettings.SelectToken(oldSetting.Path) is JValue newSetting)) return;
+                try
+                {
+                    switch (oldSetting.Type)
+                    {
+                        case JTokenType.String:
+                            newSetting.Value = oldSetting.ToString();
+                            break;
+
+                        case JTokenType.Boolean:
+                            newSetting.Value = oldSetting.ToObject<bool>();
+                            break;
+
+                        case JTokenType.Integer:
+                            newSetting.Value = oldSetting.ToObject<long>();
+                            break;
+
+                        case JTokenType.Float:
+                            newSetting.Value = oldSetting.ToObject<decimal>();
+                            break;
+                    }
+                }
+                catch { }
+            });
+        }
+
         private void NormalizeSettingsValue(JValue settings)
         {
-            var settingType = _savedSettings.SelectToken(settings.Path).Type;
-
-            switch (settingType)
+            try
             {
-                case JTokenType.String:
-                    break; // Do nothing
-                case JTokenType.Boolean:
-                    settings.Value = settings.ToObject<bool>();
-                    break;
+                var settingType = _savedSettings.SelectToken(settings.Path).Type;
 
-                case JTokenType.Integer:
-                    settings.Value = settings.ToObject<long>();
-                    break;
+                switch (settingType)
+                {
+                    case JTokenType.String:
+                        break; // Do nothing
 
-                case JTokenType.Float:
-                    settings.Value = settings.ToObject<decimal>();
-                    break;
+                    case JTokenType.Boolean:
+                        settings.Value = settings.ToObject<bool>();
+                        break;
+
+                    case JTokenType.Integer:
+                        settings.Value = settings.ToObject<long>();
+                        break;
+
+                    case JTokenType.Float:
+                        settings.Value = settings.ToObject<decimal>();
+                        break;
+                }
             }
+            catch { }
         }
 
         private void PopulateSettings(string settingsPath)

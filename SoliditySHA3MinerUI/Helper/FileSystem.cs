@@ -77,7 +77,15 @@ namespace SoliditySHA3MinerUI.Helper
                 extractPath += Path.DirectorySeparatorChar;
             try
             {
-                using (ZipArchive archive = ZipFile.OpenRead(filePath))
+                if (MinerDirectory.Exists)
+                {
+                    var backupDirPath = new DirectoryInfo(MinerDirectory.FullName + "_backup" + DateTime.Now.ToFileTime());
+                    if (backupDirPath.Exists) backupDirPath.Delete();
+
+                    MinerDirectory.MoveTo(backupDirPath.FullName);
+                }
+
+                using (var archive = ZipFile.OpenRead(filePath))
                 {
                     var pathToTruncate = "SoliditySHA3Miner/";
                     if (!archive.Entries.Any(e => e.FullName == pathToTruncate)) pathToTruncate = string.Empty;
@@ -94,10 +102,8 @@ namespace SoliditySHA3MinerUI.Helper
 
                         var outputPath = Path.Combine(MinerDirectory.FullName, archriveSubPath);
                         var outputDir = Path.GetDirectoryName(outputPath);
-
-                        if (File.Exists(outputPath) && !archriveSubPath.Equals("SoliditySHA3Miner.conf")) File.Delete(outputPath);
+                        
                         if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-
                         e.ExtractToFile(outputPath);
                     });
                     return true;
