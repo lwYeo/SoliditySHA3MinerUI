@@ -13,6 +13,7 @@ namespace SoliditySHA3MinerUI.Helper
     public static class Network
     {
         public static string MinerReleasesAPI_Path => "https://api.github.com/repos/lwYeo/SoliditySHA3Miner/releases";
+        public static string UiReleasesAPI_Path => "https://api.github.com/repos/lwYeo/SoliditySHA3MinerUI/releases";
 
         public static bool IsNetworkConnected()
         {
@@ -36,32 +37,42 @@ namespace SoliditySHA3MinerUI.Helper
 
         public static bool GetLatestMinerInfo(out Version version, out string downloadUrl)
         {
+            return GetLatestGithubReleaseInfo(MinerReleasesAPI_Path, out version, out downloadUrl);
+        }
+
+        public static bool GetLatestUiInfo(out Version version, out string downloadUrl)
+        {
+            return GetLatestGithubReleaseInfo(UiReleasesAPI_Path, out version, out downloadUrl);
+        }
+
+        private static bool GetLatestGithubReleaseInfo(string apiPath, out Version version, out string downloadUrl)
+        {
             version = new Version();
             downloadUrl = string.Empty;
             try
             {
-                var apiResult = DeserializeFromURL<List<API.GithubRelease>>(MinerReleasesAPI_Path, "application/vnd.github.v3+json");
+                var apiResult = DeserializeFromURL<List<API.GithubRelease>>(apiPath, "application/vnd.github.v3+json");
                 if (apiResult == null) return false;
 
                 var latestRelease = apiResult.Where(r =>
-                {
-                    if (r.IsDraft || r.IsPreRelease) return false;
+                    {
+                        if (r.IsDraft || r.IsPreRelease) return false;
 
-                    var hasZipFile = r.AssetsList.Any(a => ((a.ContentType ?? string.Empty).Equals("application/zip", StringComparison.OrdinalIgnoreCase)
-                                                             || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                                                            && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase));
-                    return hasZipFile;
-                })
-                .OrderByDescending(r => r.PublishedDateTime)
-                .FirstOrDefault();
+                        var hasZipFile = r.AssetsList.Any(a => ((a.ContentType ?? string.Empty).Equals("application/zip", StringComparison.OrdinalIgnoreCase)
+                                                                || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                                                               && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase));
+                        return hasZipFile;
+                    })
+                    .OrderByDescending(r => r.PublishedDateTime)
+                    .FirstOrDefault();
 
                 if (latestRelease == null) return false;
 
                 downloadUrl = latestRelease.AssetsList.
                                             Single(a => ((a.ContentType ?? string.Empty).Equals("application/zip", StringComparison.OrdinalIgnoreCase)
-                                                          || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                                                         && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase))
-                                            .DownloadURL;
+                                                         || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                                                        && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase)).
+                                            DownloadURL;
 
                 var sLatestVersion = string.Empty;
                 foreach (var c in latestRelease.TagName.TrimStart())
@@ -76,7 +87,7 @@ namespace SoliditySHA3MinerUI.Helper
             }
             catch (Exception ex)
             {
-                Processor.ShowMessageBox("Error searching latest miner information", ex.Message);
+                Processor.ShowMessageBox("Error searching latest GUI information", ex.Message);
                 return false;
             }
         }

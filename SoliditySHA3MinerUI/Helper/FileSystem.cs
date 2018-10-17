@@ -92,20 +92,7 @@ namespace SoliditySHA3MinerUI.Helper
 
                     if (!archive.Entries.Any(e => e.FullName.EndsWith("SoliditySHA3Miner.dll"))) return false;
 
-                    archive.Entries.ToList().ForEach(e =>
-                    {
-                        var archriveSubPath = e.FullName;
-                        if (archriveSubPath.StartsWith(pathToTruncate))
-                            archriveSubPath = archriveSubPath.Substring(pathToTruncate.Length);
-
-                        if (string.IsNullOrWhiteSpace(archriveSubPath)) return;
-
-                        var outputPath = Path.Combine(MinerDirectory.FullName, archriveSubPath);
-                        var outputDir = Path.GetDirectoryName(outputPath);
-                        
-                        if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-                        e.ExtractToFile(outputPath);
-                    });
+                    UnzipArchive(archive, MinerDirectory.FullName, pathToTruncate);
                     return true;
                 }
             }
@@ -114,6 +101,24 @@ namespace SoliditySHA3MinerUI.Helper
                 Processor.ShowMessageBox("Error extracting archive", ex.Message);
                 return false;
             }
+        }
+
+        private static void UnzipArchive(ZipArchive archive, string pathToExtract, string pathToTruncate)
+        {
+            archive.Entries.ToList().ForEach(entry =>
+            {
+                var archriveSubPath = entry.FullName;
+                if (archriveSubPath.StartsWith(pathToTruncate))
+                    archriveSubPath = archriveSubPath.Substring(pathToTruncate.Length);
+
+                if (string.IsNullOrWhiteSpace(archriveSubPath)) return;
+
+                var outputPath = Path.Combine(pathToExtract, archriveSubPath);
+                var outputDir = Path.GetDirectoryName(outputPath);
+
+                if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                entry.ExtractToFile(outputPath);
+            });
         }
     }
 }

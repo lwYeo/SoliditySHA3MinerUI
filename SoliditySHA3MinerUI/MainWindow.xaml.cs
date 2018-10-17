@@ -50,6 +50,7 @@ namespace SoliditySHA3MinerUI
         private bool _isClosing;
         private bool _isAPIReceived;
         private string _minerDownloadURL;
+        private string _uiDownloadURL;
 
         private string CurrentTheme
         {
@@ -152,7 +153,8 @@ namespace SoliditySHA3MinerUI
         {
             Task.Factory.StartNew(() =>
             {
-                _checkUiTimer_Elapsed(this, null); // Check at disconnected state first
+                CheckUIVersion(false, null, string.Empty);
+                CheckMinerVersion(false, null, string.Empty);
 
                 _checkConnectionTimer_Elapsed(this, null);
                 _checkMinerVersionTimer_Elapsed(this, null);
@@ -306,11 +308,24 @@ namespace SoliditySHA3MinerUI
 
         private async void retMinerVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(_minerDownloadURL)) return;
+
             await StopMiner();
 
             await SaveSettings();
 
             DownloadLatestMiner();
+        }
+
+        private async void retUIVersion_OnMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_uiDownloadURL)) return;
+
+            await StopMiner();
+
+            await SaveSettings();
+
+            DownloadLatestUI();
         }
 
         private void txtPreLaunchCmd_TextChanged(object sender, TextChangedEventArgs e)
@@ -542,10 +557,10 @@ namespace SoliditySHA3MinerUI
         {
             if (_isConnected)
             {
-                // TODO: Update latest UI
-                CheckUIVersion();
+                var updateLatestMinerInfo = (Helper.Network.GetLatestMinerInfo(out Version latestUiVersion, out string latestUiDownloadUrl));
+                CheckUIVersion(updateLatestMinerInfo, latestUiVersion, latestUiDownloadUrl);
             }
-            else { CheckUIVersion(); }
+            else { CheckUIVersion(false, null, string.Empty); }
         }
 
         private void _settingFileWatcher_Created(object sender, FileSystemEventArgs e)
@@ -598,6 +613,10 @@ namespace SoliditySHA3MinerUI
         {
             if (Dispatcher.CheckAccess())
             {
+                var localMinerFound = Helper.Processor.GetLocalMinerVersion(out Version localMinerVersion);
+
+                txbMinerVersion.Text = localMinerVersion.ToString();
+
                 retDotnetCoreVersion.Fill = Helper.Processor.CheckDotnetCoreVersion(out Version dotnetCoreVersion)
                                           ? (Brush)FindResource("GrayNormalBrush")
                                           : Brushes.Red;
@@ -605,10 +624,6 @@ namespace SoliditySHA3MinerUI
                                              ? "Invalid version, click here to go to Dotnet Core download webpage"
                                              : "Version sufficient to launch miner";
                 txbDotnetCoreVersion.Text = dotnetCoreVersion.ToString();
-
-                var localMinerFound = Helper.Processor.GetLocalMinerVersion(out Version localMinerVersion);
-
-                txbMinerVersion.Text = localMinerVersion.ToString();
 
                 if (isUpdateLatestMinerInfo)
                 {
@@ -639,19 +654,32 @@ namespace SoliditySHA3MinerUI
             }
         }
 
-        private void CheckUIVersion()
+        private void CheckUIVersion(bool isUpdateLatestUiInfo, Version latestUiVersion, string latestUiDownloadUrl)
         {
             if (Dispatcher.CheckAccess())
             {
-                var uiVersion = Helper.Processor.GetUIVersionCompat;
-                txbUIVersion.Text = uiVersion.ToString();
+                var localUiVersion = Helper.Processor.GetUIVersionCompat;
+                txbUIVersion.Text = localUiVersion.ToString();
 
-                // TODO
-                retUIVersion.ToolTip = "Your are using the latest UI version";
+                if (isUpdateLatestUiInfo)
+                {
+                    if (localUiVersion >= latestUiVersion)
+                    {
+                        _uiDownloadURL = string.Empty;
+                        retUIVersion.ToolTip = "Your are using the latest UI version";
+                        retUIVersion.Fill = (Brush)FindResource("GrayNormalBrush");
+                    }
+                    else
+                    {
+                        _uiDownloadURL = latestUiDownloadUrl;
+                        retUIVersion.ToolTip = "New release available, click here to download";
+                        retUIVersion.Fill = Brushes.Yellow;
+                    }
+                }
             }
             else
             {
-                try { this.Invoke(() => CheckUIVersion()); }
+                try { this.Invoke(() => CheckUIVersion(isUpdateLatestUiInfo, latestUiVersion, latestUiDownloadUrl)); }
                 catch (TaskCanceledException) { }
             }
         }
@@ -691,7 +719,7 @@ namespace SoliditySHA3MinerUI
 
         private async void DownloadLatestMiner()
         {
-            if (string.IsNullOrWhiteSpace(_minerDownloadURL)) return;
+            ProgressDialogController controller = null;
             try
             {
                 var fileName = System.IO.Path.GetFileName(new Uri(_minerDownloadURL).LocalPath);
@@ -700,7 +728,7 @@ namespace SoliditySHA3MinerUI
                 if (!filePath.Directory.Exists) filePath.Directory.Create();
                 if (filePath.Exists) filePath.Delete(); filePath.Refresh();
 
-                var controller = await this.ShowProgressAsync("Please wait...", "Downloading miner", isCancelable: true);
+                controller = await this.ShowProgressAsync("Please wait...", "Downloading miner", isCancelable: true);
                 controller.SetIndeterminate();
                 controller.Maximum = 100d;
 
@@ -742,13 +770,70 @@ namespace SoliditySHA3MinerUI
             {
                 Helper.Processor.ShowMessageBox("Error downloading miner", ex.Message);
             }
+            finally { if (controller != null) await controller.CloseAsync(); }
         }
 
-        private void UpdateMiner(string filePath)
+        private async void DownloadLatestUI()
+        {
+            ProgressDialogController controller = null;
+            try
+            {
+                var fileName = System.IO.Path.GetFileName(new Uri(_uiDownloadURL).LocalPath);
+                var filePath = new FileInfo(System.IO.Path.Combine(Helper.FileSystem.DownloadDirectory.FullName, fileName));
+
+                if (!filePath.Directory.Exists) filePath.Directory.Create();
+                if (filePath.Exists) filePath.Delete(); filePath.Refresh();
+
+                controller = await this.ShowProgressAsync("Please wait...", "Downloading GUI", isCancelable: true);
+                controller.SetIndeterminate();
+                controller.Maximum = 100d;
+
+                var downloader = Helper.Network.DownloadFromURL(_uiDownloadURL, filePath.FullName,
+                    new DownloadProgressChangedEventHandler((s, progressEvent) =>
+                    {
+                        this.BeginInvoke(() =>
+                        {
+                            var percentage = (double)progressEvent.BytesReceived / progressEvent.TotalBytesToReceive * 100;
+                            controller.SetProgress(percentage);
+                        });
+                    }),
+                    new System.ComponentModel.AsyncCompletedEventHandler((s, completedEvent) =>
+                    {
+                        this.BeginInvoke(() =>
+                        {
+                            if (completedEvent.Error != null)
+                            {
+                                if (!(completedEvent.Error is WebException) || ((WebException)completedEvent.Error).Status != WebExceptionStatus.RequestCanceled)
+                                    Helper.Processor.ShowMessageBox("Error downloading GUI", completedEvent.Error.Message);
+                            }
+                            else
+                            {
+                                filePath.Refresh();
+
+                                if (filePath.Exists)
+                                    UpdateUI(filePath.FullName);
+                                else
+                                    Helper.Processor.ShowMessageBox("Error downloading GUI", "Downloaded archive missing");
+                            }
+                            controller.CloseAsync();
+                        });
+                    }));
+
+                controller.Canceled += (s, cancelEvent) => downloader.CancelAsync();
+                controller.Closed += (s, closeEvent) => downloader.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Helper.Processor.ShowMessageBox("Error downloading GUI", ex.Message);
+            }
+            finally { if (controller != null) await controller.CloseAsync(); }
+        }
+
+        private void UpdateMiner(string archiveFilePath)
         {
             var oldSettings = _savedSettings?.DeepClone();
 
-            if (Helper.FileSystem.UnzipMinerArchrive(filePath, Helper.FileSystem.MinerDirectory.FullName))
+            if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath, Helper.FileSystem.MinerDirectory.FullName))
             {
                 _savedSettings = Helper.FileSystem.DeserializeFromFile(Helper.FileSystem.MinerSettingsPath.FullName);
 
@@ -756,9 +841,14 @@ namespace SoliditySHA3MinerUI
 
                 _checkMinerVersionTimer_Elapsed(this, null);
             }
-            else { Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive does not contain miner"); }
+            else { Helper.Processor.ShowMessageBox("Error updating miner", "Downloaded archive does not contain update"); }
 
             InitializeSettingFileWatcher();
+        }
+
+        private void UpdateUI(string installerFilePath)
+        {
+            // TODO: run installer and exit self
         }
 
         private async Task LaunchMiner()
@@ -988,5 +1078,6 @@ namespace SoliditySHA3MinerUI
         }
 
         #endregion Settings
+
     }
 }

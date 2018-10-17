@@ -384,7 +384,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <Rectangle Name="retUIVersion"
                                Margin="107,31,10,86"
                                Fill="{DynamicResource GrayNormalBrush}"
-                               MouseUp="retMinerVersion_MouseUp">
+                               MouseUp="retUIVersion_OnMouseUp">
                         <Rectangle.OpacityMask>
                             <VisualBrush Visual="{iconPacks:Modern Kind=InformationCircle}" />
                         </Rectangle.OpacityMask>
