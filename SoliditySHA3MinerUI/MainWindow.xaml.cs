@@ -159,7 +159,10 @@ namespace SoliditySHA3MinerUI
                 _checkConnectionTimer_Elapsed(this, null);
                 _checkMinerVersionTimer_Elapsed(this, null);
 
-                if (Helper.FileSystem.MinerDirectory.Exists) InitializeSettingFileWatcher();
+                if (!Helper.FileSystem.MinerDirectory.Exists)
+                    Helper.FileSystem.MinerDirectory.Create();
+
+                InitializeSettingFileWatcher();
 
                 _checkConnectionTimer = new Timer(Properties.Settings.Default.CheckConnectionInterval * 1000) { AutoReset = true };
                 _checkConnectionTimer.Elapsed += _checkConnectionTimer_Elapsed;
@@ -185,7 +188,13 @@ namespace SoliditySHA3MinerUI
 
         private void InitializeSettingFileWatcher()
         {
-            if (_settingFileWatcher != null) return;
+            if (_settingFileWatcher != null)
+            {
+                _settingFileWatcher.Created -= _settingFileWatcher_Created;
+                _settingFileWatcher.Changed -= _settingFileWatcher_Changed;
+                _settingFileWatcher.EnableRaisingEvents = false;
+                _settingFileWatcher.Dispose();
+            }
 
             if (Helper.FileSystem.MinerSettingsPath.Exists) PopulateSettings(Helper.FileSystem.MinerSettingsPath.FullName);
 
@@ -557,7 +566,7 @@ namespace SoliditySHA3MinerUI
         {
             if (_isConnected)
             {
-                var updateLatestMinerInfo = (Helper.Network.GetLatestMinerInfo(out Version latestUiVersion, out string latestUiDownloadUrl));
+                var updateLatestMinerInfo = (Helper.Network.GetLatestUiInfo(out Version latestUiVersion, out string latestUiDownloadUrl));
                 CheckUIVersion(updateLatestMinerInfo, latestUiVersion, latestUiDownloadUrl);
             }
             else { CheckUIVersion(false, null, string.Empty); }
@@ -759,7 +768,7 @@ namespace SoliditySHA3MinerUI
                                 else
                                     Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive missing");
                             }
-                            controller.CloseAsync();
+                            if (controller.IsOpen) controller.CloseAsync();
                         });
                     }));
 
@@ -770,7 +779,6 @@ namespace SoliditySHA3MinerUI
             {
                 Helper.Processor.ShowMessageBox("Error downloading miner", ex.Message);
             }
-            finally { if (controller != null) await controller.CloseAsync(); }
         }
 
         private async void DownloadLatestUI()
@@ -826,7 +834,7 @@ namespace SoliditySHA3MinerUI
             {
                 Helper.Processor.ShowMessageBox("Error downloading GUI", ex.Message);
             }
-            finally { if (controller != null) await controller.CloseAsync(); }
+            finally { if (controller != null && controller.IsOpen) await controller.CloseAsync(); }
         }
 
         private void UpdateMiner(string archiveFilePath)
@@ -839,6 +847,8 @@ namespace SoliditySHA3MinerUI
 
                 UpdateSettings(oldSettings, _savedSettings);
 
+                InitializeSettingFileWatcher();
+
                 _checkMinerVersionTimer_Elapsed(this, null);
             }
             else { Helper.Processor.ShowMessageBox("Error updating miner", "Downloaded archive does not contain update"); }
@@ -848,7 +858,8 @@ namespace SoliditySHA3MinerUI
 
         private void UpdateUI(string installerFilePath)
         {
-            // TODO: run installer and exit self
+            System.Diagnostics.Process.Start(installerFilePath);
+            Application.Current.Shutdown();
         }
 
         private async Task LaunchMiner()
@@ -898,7 +909,7 @@ namespace SoliditySHA3MinerUI
                 }
                 while ((bool)tswLaunch.IsChecked && !_isAPIReceived && waitSeconds < 45);
 
-                if (controller != null) await controller.CloseAsync();
+                if (controller != null && controller.IsOpen) await controller.CloseAsync();
 
                 // Stop miner if no API available after 30 seconds
                 if (!_isAPIReceived) await StopMiner();
@@ -929,7 +940,7 @@ namespace SoliditySHA3MinerUI
             }
             finally
             {
-                if (controller != null) await controller.CloseAsync();
+                if (controller != null && controller.IsOpen) await controller.CloseAsync();
             }
         }
 
@@ -1032,9 +1043,10 @@ namespace SoliditySHA3MinerUI
 
         private void NormalizeSettingsValue(JValue settings)
         {
+            JTokenType settingType = JTokenType.None;
             try
             {
-                var settingType = _savedSettings.SelectToken(settings.Path).Type;
+                settingType = _savedSettings.SelectToken(settings.Path).Type;
 
                 switch (settingType)
                 {
@@ -1054,7 +1066,10 @@ namespace SoliditySHA3MinerUI
                         break;
                 }
             }
-            catch { }
+            catch (Exception)
+            {
+                throw new Exception(string.Format("Failed to parse '{0}' into {1} at '{2}'", settings.Value, settingType, settings.Path));
+            }
         }
 
         private void PopulateSettings(string settingsPath)

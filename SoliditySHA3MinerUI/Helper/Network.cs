@@ -37,15 +37,15 @@ namespace SoliditySHA3MinerUI.Helper
 
         public static bool GetLatestMinerInfo(out Version version, out string downloadUrl)
         {
-            return GetLatestGithubReleaseInfo(MinerReleasesAPI_Path, out version, out downloadUrl);
+            return GetLatestGithubReleaseInfo(MinerReleasesAPI_Path, ".zip", out version, out downloadUrl);
         }
 
         public static bool GetLatestUiInfo(out Version version, out string downloadUrl)
         {
-            return GetLatestGithubReleaseInfo(UiReleasesAPI_Path, out version, out downloadUrl);
+            return GetLatestGithubReleaseInfo(UiReleasesAPI_Path, ".msi", out version, out downloadUrl);
         }
 
-        private static bool GetLatestGithubReleaseInfo(string apiPath, out Version version, out string downloadUrl)
+        private static bool GetLatestGithubReleaseInfo(string apiPath, string fileExtension, out Version version, out string downloadUrl)
         {
             version = new Version();
             downloadUrl = string.Empty;
@@ -58,8 +58,7 @@ namespace SoliditySHA3MinerUI.Helper
                     {
                         if (r.IsDraft || r.IsPreRelease) return false;
 
-                        var hasZipFile = r.AssetsList.Any(a => ((a.ContentType ?? string.Empty).Equals("application/zip", StringComparison.OrdinalIgnoreCase)
-                                                                || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                        var hasZipFile = r.AssetsList.Any(a => ((a.FileName ?? string.Empty).EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                                                                && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase));
                         return hasZipFile;
                     })
@@ -69,8 +68,7 @@ namespace SoliditySHA3MinerUI.Helper
                 if (latestRelease == null) return false;
 
                 downloadUrl = latestRelease.AssetsList.
-                                            Single(a => ((a.ContentType ?? string.Empty).Equals("application/zip", StringComparison.OrdinalIgnoreCase)
-                                                         || (a.FileName ?? string.Empty).EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                                            Single(a => ((a.FileName ?? string.Empty).EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                                                         && (a.FileState ?? string.Empty).Equals("uploaded", StringComparison.OrdinalIgnoreCase)).
                                             DownloadURL;
 

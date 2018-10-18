@@ -12,10 +12,13 @@ namespace SoliditySHA3MinerUI.Helper
 {
     public static class FileSystem
     {
+        private static DirectoryInfo LocalAppParentDir => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        public static DirectoryInfo LocalAppDirectory => new DirectoryInfo(Path.Combine(LocalAppParentDir.FullName, "SoliditySHA3MinerUI"));
         public static DirectoryInfo AppDirectory => Directory.GetParent(Assembly.GetExecutingAssembly().Location);
-        public static DirectoryInfo DownloadDirectory => new DirectoryInfo(Path.Combine(AppDirectory.FullName, "Downloads"));
-        public static DirectoryInfo MinerDirectory => new DirectoryInfo(Path.Combine(AppDirectory.FullName, "SoliditySHA3Miner"));
-        public static DirectoryInfo LogDirectory => new DirectoryInfo(Path.Combine(MinerDirectory.FullName, "Logs"));
+
+        public static DirectoryInfo DownloadDirectory => new DirectoryInfo(Path.Combine(LocalAppDirectory.FullName, "Downloads"));
+        public static DirectoryInfo MinerDirectory => new DirectoryInfo(Path.Combine(LocalAppDirectory.FullName, "SoliditySHA3Miner"));
+        public static DirectoryInfo LogDirectory => new DirectoryInfo(Path.Combine(MinerDirectory.FullName, "Log"));
         public static FileInfo MinerSettingsPath => new FileInfo(Path.Combine(MinerDirectory.FullName, "SoliditySHA3Miner.conf"));
 
         public static string GetProcessOutput(string filePath, string args)
@@ -77,7 +80,7 @@ namespace SoliditySHA3MinerUI.Helper
                 extractPath += Path.DirectorySeparatorChar;
             try
             {
-                if (MinerDirectory.Exists)
+                if (MinerDirectory.Exists && (MinerDirectory.GetFiles().Any() || MinerDirectory.GetDirectories().Any()))
                 {
                     var backupDirPath = new DirectoryInfo(MinerDirectory.FullName + "_backup" + DateTime.Now.ToFileTime());
                     if (backupDirPath.Exists) backupDirPath.Delete();

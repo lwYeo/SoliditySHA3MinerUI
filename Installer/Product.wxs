@@ -48,7 +48,7 @@
 
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER"
-                   Name="SoliditySHA3Miner GUI" />
+                   Name="SoliditySHA3MinerUI" />
       </Directory>
 
       <Directory Id="ProgramMenuFolder" />
@@ -142,8 +142,8 @@
       <Component Id="SoliditySHA3MinerUI.exe.config"
                  Guid="13b9d37b-b92a-4739-a501-bae3f9f76795"
                  Win64="yes">
-      <File Id="SoliditySHA3MinerUI.exe.config"
-            Source="$(var._TargetDir)SoliditySHA3MinerUI.exe.config" />
+        <File Id="SoliditySHA3MinerUI.exe.config"
+              Source="$(var._TargetDir)SoliditySHA3MinerUI.exe.config" />
       </Component>
 
     </ComponentGroup>
