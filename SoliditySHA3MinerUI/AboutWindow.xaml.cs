@@ -18,10 +18,9 @@ namespace SoliditySHA3MinerUI
             Height *= scaleSize;
             Width *= scaleSize;
 
-            var assembly = Assembly.GetExecutingAssembly();
-            var assemblyVersion = assembly.GetName().Version;
-            var copyright = (assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), true) as AssemblyCopyrightAttribute[])[0].Copyright;
-            txbDescription.Text = string.Format(txbDescription.Text, assemblyVersion.Major, assemblyVersion.Minor, assemblyVersion.Build, copyright);
+            var version = Helper.Processor.GetUIVersion;
+            var copyright = Helper.Processor.GetCopyright;
+            txbDescription.Text = string.Format(txbDescription.Text, version.Major, version.Minor, version.Build, copyright);
         }
     }
 }

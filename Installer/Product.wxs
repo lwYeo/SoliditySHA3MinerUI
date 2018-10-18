@@ -27,7 +27,7 @@
     <WixVariable Id="WixUILicenseRtf"
                  Value="License.rtf" />
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed. Setup will now exit." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <Upgrade Id="$(var._UpgradeCode)">
       <UpgradeVersion OnlyDetect="yes"

@@ -15,9 +15,15 @@ namespace SoliditySHA3MinerUI.Helper
 {
     public static class Processor
     {
-        public static Version MinimumDotnetCoreVersion => new Version("2.1.3");
+        public static string ProductName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+
+        public static string CompanyName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyCompanyAttribute>().Company;
+
+        public static string GetCopyright => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright;
 
         public static Version GetUIVersion => Assembly.GetExecutingAssembly().GetName().Version;
+
+        public static Version MinimumDotnetCoreVersion => new Version("2.1.0");
 
         public static Version GetUIVersionCompat
         {

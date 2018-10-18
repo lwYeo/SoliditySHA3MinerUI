@@ -121,6 +121,8 @@ namespace SoliditySHA3MinerUI
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Language = System.Windows.Markup.XmlLanguage.GetLanguage(CultureInfo.InvariantCulture.Name);
 
+            CheckUserConfigFile();
+
             MinerProcessor = new API.MinerProcessor(this);
             MinerProcessor.OnResponse += MinerProcessor_OnResponse;
             MinerProcessor.OnRequestSettings += MinerProcessor_OnRequestSettings;
@@ -508,9 +510,9 @@ namespace SoliditySHA3MinerUI
 
                 var newParagraph = new Paragraph();
                 newParagraph.Inlines.Add(newLog);
-                newParagraph.Foreground = newLog.StartsWith("[ERROR]")
+                newParagraph.Foreground = (newLog.IndexOf("[ERROR]") > -1)
                                         ? Brushes.Red
-                                        : newLog.StartsWith("[WARN]")
+                                        : (newLog.IndexOf("[WARN]") > -1)
                                         ? Brushes.Yellow
                                         : (Brush)FindResource(SystemColors.ControlTextBrushKey);
 
@@ -947,6 +949,27 @@ namespace SoliditySHA3MinerUI
         #endregion User Action Processes
 
         #region Settings
+
+        private void CheckUserConfigFile()
+        {
+            var configFile = Helper.FileSystem.LocalAppDirectory.
+                                               Parent.
+                                               GetFiles("user.config", SearchOption.AllDirectories).
+                                               FirstOrDefault();
+
+            if (configFile != null && new Version(configFile.Directory.Name) < Helper.Processor.GetUIVersion)
+            {
+                try
+                {
+                    var currentPath = new DirectoryInfo(System.IO.Path.Combine(configFile.Directory.Parent.FullName,
+                                                                               Helper.Processor.GetUIVersion.ToString()));
+                    configFile.Directory.MoveTo(currentPath.FullName);
+
+                    Properties.Settings.Default.Reload();
+                }
+                catch { }
+            }
+        }
 
         private async Task SaveSettings()
         {

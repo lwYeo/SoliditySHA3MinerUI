@@ -1,14 +1,17 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Deployment.WindowsInstaller;
 
 namespace InstallerHelper
 {
     public class CustomActions
     {
+        private static string CompanyName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyCompanyAttribute>().Company;
         private static DirectoryInfo LocalAppParentDir => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-        public static DirectoryInfo[] LocalAppDirectories => new DirectoryInfo(Path.Combine(LocalAppParentDir.FullName, "lwyeo@github")).GetDirectories("SoliditySHA3MinerUI*");
+
+        public static DirectoryInfo[] LocalAppDirectories => new DirectoryInfo(Path.Combine(LocalAppParentDir.FullName, CompanyName)).GetDirectories("SoliditySHA3MinerUI*");
 
         [CustomAction]
         public static ActionResult DeleteLocalAppDir(Session session)
