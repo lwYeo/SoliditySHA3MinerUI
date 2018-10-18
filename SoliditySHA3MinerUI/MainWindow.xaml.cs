@@ -486,8 +486,8 @@ namespace SoliditySHA3MinerUI
                         CurrentDevice = "NVIDIA";
                     else if (minerReport.DashboardList.All(d => d.Brand == "AMD"))
                         CurrentDevice = "AMD";
-                    else if (minerReport.DashboardList.All(d => d.Brand == "Intel"))
-                        CurrentDevice = "Intel";
+                    else if (minerReport.DashboardList.All(d => d.Brand == "INTEL"))
+                        CurrentDevice = "INTEL";
                     else
                         CurrentDevice = "Unknown";
                 }
