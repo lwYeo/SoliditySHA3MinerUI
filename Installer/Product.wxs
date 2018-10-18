@@ -3,12 +3,15 @@
      xmlns:ui="http://schemas.microsoft.com/wix/UIExtension">
 
   <?define _TargetDir=$(var.SoliditySHA3MinerUI.TargetDir)?>
-  
-  <Product Id="2666cea1-893a-43d7-813b-7436aee13035"
-           Name="SoliditySHA3Miner GUI"
-           Version="!(bind.FileVersion.SoliditySHA3MinerUI.exe)"
+  <?define _UpgradeCode="220cd27c-38e1-4360-a113-243b4de4028f"?>
+  <?define _ProductVersion="!(bind.FileVersion.SoliditySHA3MinerUI.exe)"?>
+  <?define _InstallerVersion="1.0.0"?><!--Changing installer version will trigger deletion method in InstallerHelper-->
+
+  <Product Id="*"
+           Name="SoliditySHA3Miner GUI v$(var._ProductVersion)"
+           Version="$(var._InstallerVersion)"
            Manufacturer="lwYeo@github"
-           UpgradeCode="220cd27c-38e1-4360-a113-243b4de4028f"
+           UpgradeCode="$(var._UpgradeCode)"
            Language="1033">
 
     <Package Platform="x64"
@@ -25,7 +28,15 @@
     <WixVariable Id="WixUILicenseRtf"
                  Value="License.rtf" />
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed. Setup will now exit." />
+
+    <Upgrade Id="$(var._UpgradeCode)">
+      <UpgradeVersion OnlyDetect="yes"
+                      IncludeMinimum="no"
+                      IncludeMaximum="no"
+                      Maximum="$(var._InstallerVersion)"
+                      Property="PREVIOUSFOUND" />
+    </Upgrade>
 
     <MediaTemplate EmbedCab="yes"
                    CompressionLevel="high" />
@@ -34,6 +45,16 @@
       <![CDATA[Installed OR (VersionNT64 >= 603)]]>
     </Condition>
     
+    <Binary Id="InstallerHelper.dll"
+            SourceFile="$(var.InstallerHelper.TargetDir)$(var.InstallerHelper.TargetName).CA.dll" />
+
+    <CustomAction Id="InstallerHelper" BinaryKey="InstallerHelper.dll"
+                  DllEntry="DeleteLocalAppDir" Return="check" Execute="immediate"/>
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallerHelper" Before="InstallFinalize" />
+    </InstallExecuteSequence>
+
     <Feature Id="ProductFeature"
              Title="SoliditySHA3Miner GUI"
              Level="1">

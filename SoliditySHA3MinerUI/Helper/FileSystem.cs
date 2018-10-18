@@ -13,7 +13,7 @@ namespace SoliditySHA3MinerUI.Helper
     public static class FileSystem
     {
         private static DirectoryInfo LocalAppParentDir => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-        public static DirectoryInfo LocalAppDirectory => new DirectoryInfo(Path.Combine(LocalAppParentDir.FullName, "SoliditySHA3MinerUI"));
+        public static DirectoryInfo LocalAppDirectory => new DirectoryInfo(Path.Combine(LocalAppParentDir.FullName, "lwyeo@github", "SoliditySHA3MinerUI"));
         public static DirectoryInfo AppDirectory => Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 
         public static DirectoryInfo DownloadDirectory => new DirectoryInfo(Path.Combine(LocalAppDirectory.FullName, "Downloads"));

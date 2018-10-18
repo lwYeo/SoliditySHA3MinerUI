@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoliditySHA3MinerUI", "Soli
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "Installer\Installer.wixproj", "{4A6E2BBF-70D1-477B-80E0-A46D33DF4036}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerHelper", "InstallerHelper\InstallerHelper.csproj", "{774EF3E4-052E-44B9-889D-F550CCA659E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,8 @@ Global
 		{4A6E2BBF-70D1-477B-80E0-A46D33DF4036}.Debug|x64.Build.0 = Debug|x86
 		{4A6E2BBF-70D1-477B-80E0-A46D33DF4036}.Release|x64.ActiveCfg = Release|x86
 		{4A6E2BBF-70D1-477B-80E0-A46D33DF4036}.Release|x64.Build.0 = Release|x86
+		{774EF3E4-052E-44B9-889D-F550CCA659E5}.Debug|x64.ActiveCfg = Debug|x86
+		{774EF3E4-052E-44B9-889D-F550CCA659E5}.Release|x64.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
