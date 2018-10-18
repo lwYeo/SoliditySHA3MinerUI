@@ -1,36 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"><?define SoliditySHA3MinerUI_TargetDir=$(var.SoliditySHA3MinerUI.TargetDir)?>
-	<Product Id="*" Name="Installer" Language="1033" Version="1.0.0.0" Manufacturer="lwYeo" UpgradeCode="220cd27c-38e1-4360-a113-243b4de4028f">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:ui="http://schemas.microsoft.com/wix/UIExtension">
+  <?define SoliditySHA3MinerUI_TargetDir=$(var.SoliditySHA3MinerUI.TargetDir)?>
+  
+  <Product Id="2666cea1-893a-43d7-813b-7436aee13035"
+           Name="SoliditySHA3Miner GUI"
+           Language="1033" Version="0.2.0.0" Manufacturer="lwYeo@github"
+           UpgradeCode="220cd27c-38e1-4360-a113-243b4de4028f">
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+    <Package Platform="x64" InstallerVersion="405" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" />
 
-		<Feature Id="ProductFeature" Title="Installer" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-		</Feature>
-	</Product>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="WixUI_Minimal" />
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="Installer" />
-			</Directory>
-		</Directory>
-	</Fragment>
+    <Condition Message="[ProductName] is only supported on Windows 10 64-bit, or higher.">
+      <![CDATA[Installed OR (VersionNT64 >= 603)]]>
+    </Condition>
+    
+    <Feature Id="ProductFeature" Title="SoliditySHA3Miner GUI" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
 
-	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-			<!-- <Component Id="ProductComponent"> -->
-				<!-- TODO: Insert files, registry keys, and other resources here. -->
-			<!-- </Component> -->
-			<Component Id="SoliditySHA3MinerUI.exe" Guid="c7c84d11-ca85-460b-959a-e4da2278f872">
-			  <File Id="SoliditySHA3MinerUI.exe" Name="SoliditySHA3MinerUI.exe" Source="$(var.SoliditySHA3MinerUI_TargetDir)SoliditySHA3MinerUI.exe" />
-			</Component>
-			<Component Id="SoliditySHA3MinerUI.exe.config" Guid="13b9d37b-b92a-4739-a501-bae3f9f76795">
-			  <File Id="SoliditySHA3MinerUI.exe.config" Name="SoliditySHA3MinerUI.exe.config" Source="$(var.SoliditySHA3MinerUI_TargetDir)SoliditySHA3MinerUI.exe.config" />
-			</Component>
-		</ComponentGroup>
-	</Fragment>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="SoliditySHA3Miner GUI" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MahApps.Metro.IconPacks.Modern.dll" Guid="2d1880f2-e3ce-4672-82c3-fa8abe0f1313" Win64="yes">
+        <File Id="MahApps.Metro.IconPacks.Modern.dll" Name="MahApps.Metro.IconPacks.Modern.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)MahApps.Metro.IconPacks.Modern.dll" />
+      </Component>
+      <Component Id="MahApps.Metro.dll" Guid="b4c63223-1fda-4eac-b4cd-1dfd9a861ae1" Win64="yes">
+        <File Id="MahApps.Metro.dll" Name="MahApps.Metro.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)MahApps.Metro.dll" />
+      </Component>
+      <Component Id="Newtonsoft.Json.dll" Guid="6eac6a72-2a5c-477b-be93-c40a5a9d7426" Win64="yes">
+        <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="ControlzEx.dll" Guid="49d59c8b-1684-4236-81e0-8f4aff1c3e75" Win64="yes">
+        <File Id="ControlzEx.dll" Name="ControlzEx.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)ControlzEx.dll" />
+      </Component>
+      <Component Id="System.Windows.Interactivity.exe" Guid="4b31ff54-70de-409a-a819-2130225d98a2" Win64="yes">
+        <File Id="System.Windows.Interactivity.dll" Name="System.Windows.Interactivity.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)System.Windows.Interactivity.dll" />
+      </Component>
+      <Component Id="System.IO.Compression.dll" Guid="36471866-db6b-4f1d-b6bf-2ffaf60ddb57" Win64="yes">
+        <File Id="System.IO.Compression.dll" Name="System.IO.Compression.dll" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)System.IO.Compression.dll" />
+      </Component>
+      <Component Id="SoliditySHA3MinerUI.exe" Guid="c7c84d11-ca85-460b-959a-e4da2278f872" Win64="yes">
+        <File Id="SoliditySHA3MinerUI.exe" Name="SoliditySHA3MinerUI.exe" ProcessorArchitecture="x64"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)SoliditySHA3MinerUI.exe" />
+      </Component>
+      <Component Id="SoliditySHA3MinerUI.exe.config" Guid="13b9d37b-b92a-4739-a501-bae3f9f76795" Win64="yes">
+      <File Id="SoliditySHA3MinerUI.exe.config" Name="SoliditySHA3MinerUI.exe.config"
+              Source="$(var.SoliditySHA3MinerUI_TargetDir)SoliditySHA3MinerUI.exe.config" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
 </Wix>
