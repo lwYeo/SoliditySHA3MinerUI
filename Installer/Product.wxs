@@ -5,11 +5,10 @@
   <?define _TargetDir=$(var.SoliditySHA3MinerUI.TargetDir)?>
   <?define _UpgradeCode="220cd27c-38e1-4360-a113-243b4de4028f"?>
   <?define _ProductVersion="!(bind.FileVersion.SoliditySHA3MinerUI.exe)"?>
-  <?define _InstallerVersion="1.0.0"?><!--Changing installer version will trigger deletion method in InstallerHelper-->
 
   <Product Id="*"
-           Name="SoliditySHA3Miner GUI v$(var._ProductVersion)"
-           Version="$(var._InstallerVersion)"
+           Name="SoliditySHA3Miner GUI"
+           Version="$(var._ProductVersion)"
            Manufacturer="lwYeo@github"
            UpgradeCode="$(var._UpgradeCode)"
            Language="1033">
@@ -34,7 +33,7 @@
       <UpgradeVersion OnlyDetect="yes"
                       IncludeMinimum="no"
                       IncludeMaximum="no"
-                      Maximum="$(var._InstallerVersion)"
+                      Maximum="$(var._ProductVersion)"
                       Property="PREVIOUSFOUND" />
     </Upgrade>
 
@@ -52,7 +51,9 @@
                   DllEntry="DeleteLocalAppDir" Return="check" Execute="immediate"/>
 
     <InstallExecuteSequence>
-      <Custom Action="InstallerHelper" Before="InstallFinalize" />
+      <Custom Action="InstallerHelper" Before="InstallFinalize">
+        Installed AND (NOT REINSTALL) AND (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")
+      </Custom>
     </InstallExecuteSequence>
 
     <Feature Id="ProductFeature"
