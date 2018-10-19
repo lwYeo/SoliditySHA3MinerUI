@@ -132,8 +132,6 @@
                              IsOpenChanged="foLogs_IsOpenChanged">
                 <Grid Name="grdLogs">
                     <Button Name="btnClearLogs"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
                             Width="80"
                             Height="26"
                             FontSize="10"
@@ -141,8 +139,8 @@
                             Click="btnClearLogs_Click">
                         Clear Logs
                         <Button.RenderTransform>
-                            <TranslateTransform X="-140"
-                                                Y="-32" />
+                            <TranslateTransform X="210"
+                                                Y="-253" />
                         </Button.RenderTransform>
                     </Button>
                     <Controls:ToggleSwitch Name="tswLogAutoScroll"
@@ -235,9 +233,23 @@
                             </TransformGroup>
                         </Controls:ToggleSwitch.RenderTransform>
                     </Controls:ToggleSwitch>
+                    <Button Name="btnResetSettings"
+                            Grid.Column="3"
+                            Grid.Row="0"
+                            Width="80"
+                            Height="26"
+                            FontSize="10"
+                            Style="{DynamicResource AccentedSquareButtonStyle}"
+                            Click="btnResetSettings_OnClick">
+                        Reset Settings
+                        <Button.RenderTransform>
+                            <TranslateTransform X="92"
+                                                Y="-40" />
+                        </Button.RenderTransform>
+                    </Button>
                     <TextBlock Name="txbCheckConnectionInterval"
                                Grid.Column="1"
-                               Grid.Row="0"
+                               Grid.Row="1"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Margin="10 -10 0 0"
@@ -246,7 +258,7 @@
                                FontSize="13" />
                     <Controls:NumericUpDown Name="numCheckConnectionInterval"
                                             Grid.Column="1"
-                                            Grid.Row="1"
+                                            Grid.Row="2"
                                             HorizontalAlignment="Left"
                                             Width="110"
                                             Margin="10 0 0 0"
@@ -255,7 +267,7 @@
                                             ValueChanged="numScaleSize_ValueChanged" />
                     <TextBlock Name="txbCheckVersionInterval"
                                Grid.Column="2"
-                               Grid.Row="0"
+                               Grid.Row="1"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Margin="10 -10 0 0"
@@ -264,7 +276,7 @@
                                FontSize="13" />
                     <Controls:NumericUpDown Name="numCheckVersionInterval"
                                             Grid.Column="2"
-                                            Grid.Row="1"
+                                            Grid.Row="2"
                                             HorizontalAlignment="Left"
                                             Width="110"
                                             Margin="10 0 0 0"
@@ -273,7 +285,7 @@
                                             ValueChanged="numScaleSize_ValueChanged" />
                     <TextBlock Name="txbScaleSizeLabel"
                                Grid.Column="3"
-                               Grid.Row="0"
+                               Grid.Row="1"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Margin="10 0 0 0"
@@ -281,7 +293,7 @@
                                FontSize="13" />
                     <Controls:NumericUpDown Name="numScaleSize"
                                             Grid.Column="3"
-                                            Grid.Row="1"
+                                            Grid.Row="2"
                                             HorizontalAlignment="Left"
                                             Width="90"
                                             Margin="10 0 0 0"

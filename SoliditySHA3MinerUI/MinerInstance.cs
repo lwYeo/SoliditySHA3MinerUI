@@ -11,8 +11,12 @@ namespace SoliditySHA3MinerUI
     {
         public delegate void OnLogUpdatedDelegate(string updatedLog, string newLog, int removedLogIndex);
 
-        public static FileInfo MinerPath => new FileInfo(Path.Combine(Helper.FileSystem.MinerDirectory.FullName, "SoliditySHA3Miner.dll"));
-        private static FileInfo PreLaunchPath => new FileInfo(Path.Combine(Helper.FileSystem.MinerDirectory.FullName, "prelaunch.bat"));
+        public static DirectoryInfo MinerDirectory => new DirectoryInfo(Path.Combine(Helper.FileSystem.LocalAppDirectory.FullName, "SoliditySHA3Miner"));
+        public static DirectoryInfo MinerLogDirectory => new DirectoryInfo(Path.Combine(MinerDirectory.FullName, "Log"));
+
+        public static FileInfo MinerPath => new FileInfo(Path.Combine(MinerDirectory.FullName, "SoliditySHA3Miner.dll"));
+        public static FileInfo MinerSettingsPath => new FileInfo(Path.Combine(MinerDirectory.FullName, "SoliditySHA3Miner.conf"));
+        private static FileInfo PreLaunchPath => new FileInfo(Path.Combine(MinerDirectory.FullName, "prelaunch.bat"));
 
         private object _loggingLock;
         private uint _loggedLinesCount;

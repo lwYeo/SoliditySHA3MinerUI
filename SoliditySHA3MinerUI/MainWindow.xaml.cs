@@ -161,8 +161,8 @@ namespace SoliditySHA3MinerUI
                 _checkConnectionTimer_Elapsed(this, null);
                 _checkMinerVersionTimer_Elapsed(this, null);
 
-                if (!Helper.FileSystem.MinerDirectory.Exists)
-                    Helper.FileSystem.MinerDirectory.Create();
+                if (!MinerInstance.MinerDirectory.Exists)
+                    MinerInstance.MinerDirectory.Create();
 
                 InitializeSettingFileWatcher();
 
@@ -173,18 +173,17 @@ namespace SoliditySHA3MinerUI
                 _checkMinerVersionTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                 _checkMinerVersionTimer.Elapsed += _checkMinerVersionTimer_Elapsed;
                 _checkMinerVersionTimer.Start();
-
-                Task.Factory.StartNew(() =>
-                {
-                    Task.Delay(10000);
-                    _checkUiTimer_Elapsed(this, null);
-
-                    _checkUiTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
-                    _checkUiTimer.Elapsed += _checkUiTimer_Elapsed;
-                    _checkUiTimer.Start();
-                });
-
+            })
+            .ContinueWith((t) =>
+            {
                 this.BeginInvoke(() => IsEnabled = true);
+
+                Task.Delay(1000 * 30);
+                _checkUiTimer_Elapsed(this, null);
+
+                _checkUiTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
+                _checkUiTimer.Elapsed += _checkUiTimer_Elapsed;
+                _checkUiTimer.Start();
             });
         }
 
@@ -198,11 +197,11 @@ namespace SoliditySHA3MinerUI
                 _settingFileWatcher.Dispose();
             }
 
-            if (Helper.FileSystem.MinerSettingsPath.Exists) PopulateSettings(Helper.FileSystem.MinerSettingsPath.FullName);
+            if (MinerInstance.MinerSettingsPath.Exists) PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
 
-            _settingFileWatcher = new FileSystemWatcher(Helper.FileSystem.MinerDirectory.FullName)
+            _settingFileWatcher = new FileSystemWatcher(MinerInstance.MinerDirectory.FullName)
             {
-                Filter = Helper.FileSystem.MinerSettingsPath.Name,
+                Filter = MinerInstance.MinerSettingsPath.Name,
                 NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
                 IncludeSubdirectories = false,
                 EnableRaisingEvents = true
@@ -311,10 +310,16 @@ namespace SoliditySHA3MinerUI
                 rtbLogs.Document.Blocks.Clear();
         }
 
+        private async void btnResetSettings_OnClick(object sender, RoutedEventArgs e)
+        {
+            await ResetAllSettings();
+        }
+
         private void retDotnetCoreVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (retDotnetCoreVersion.Fill != Brushes.Red) return;
-            System.Diagnostics.Process.Start("https://aka.ms/dotnet-download");
+
+            Helper.FileSystem.LaunchCommand("https://www.microsoft.com/net/download/thank-you/dotnet-runtime-2.1.5-windows-x64-installer");
         }
 
         private async void retMinerVersion_MouseUp(object sender, MouseButtonEventArgs e)
@@ -843,9 +848,9 @@ namespace SoliditySHA3MinerUI
         {
             var oldSettings = _savedSettings?.DeepClone();
 
-            if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath, Helper.FileSystem.MinerDirectory.FullName))
+            if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath, MinerInstance.MinerDirectory.FullName))
             {
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(Helper.FileSystem.MinerSettingsPath.FullName);
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(MinerInstance.MinerSettingsPath.FullName);
 
                 UpdateSettings(oldSettings, _savedSettings);
 
@@ -860,11 +865,8 @@ namespace SoliditySHA3MinerUI
 
         private void UpdateUI(string installerFilePath)
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "msiexec",
-                Arguments = string.Format("/package \"{0}\" /passive", installerFilePath)
-            });
+            Helper.FileSystem.LaunchCommand("msiexec", arguments: string.Format("/package \"{0}\" /passive", installerFilePath), createNoWindow:true);
+
             Application.Current.Shutdown();
         }
 
@@ -954,6 +956,40 @@ namespace SoliditySHA3MinerUI
 
         #region Settings
 
+        private async Task ResetAllSettings()
+        {
+            MessageDialogResult userResponse = await this.ShowMessageAsync("Reset all settings",
+                                                                           "Press OK to reset all settings.",
+                                                                           style: MessageDialogStyle.AffirmativeAndNegative);
+            if (userResponse != MessageDialogResult.Affirmative) return;
+
+            await StopMiner();
+
+            Properties.Settings.Default.Reset();
+
+            if (MinerInstance.MinerSettingsPath.Exists)
+                MinerInstance.MinerSettingsPath.Delete();
+
+            if (MinerInstance.MinerPath.Exists)
+            {
+                var process = Helper.FileSystem.LaunchCommand("dotnet", MinerInstance.MinerPath.FullName, createNoWindow:true);
+                try
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        await Task.Delay(1000);
+                        if (process.HasExited) return;
+                    }
+
+                    if (!process.HasExited)
+                        Helper.Processor.GetAllRelatedProcessList().ForEach(p => p.Kill()); // Kill all stray processes
+                }
+                catch { }
+
+                PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
+            }
+        }
+
         private void CheckUserConfigFile()
         {
             var configFile = Helper.FileSystem.LocalAppDirectory.
@@ -993,7 +1029,7 @@ namespace SoliditySHA3MinerUI
 
                         TraverseSettings(trvSettings.ItemsSource as JToken, setting => NormalizeSettingsValue(setting));
 
-                        if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, Helper.FileSystem.MinerSettingsPath.FullName))
+                        if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, MinerInstance.MinerSettingsPath.FullName))
                         {
                             if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
 
@@ -1025,7 +1061,7 @@ namespace SoliditySHA3MinerUI
                         else
                         {
                             foSettings.IsOpen = true;
-                            throw new Exception("Failed to save " + Helper.FileSystem.MinerSettingsPath.Name);
+                            throw new Exception("Failed to save " + MinerInstance.MinerSettingsPath.Name);
                         }
                     }
                     catch (Exception ex)
@@ -1033,7 +1069,7 @@ namespace SoliditySHA3MinerUI
                         Helper.Processor.ShowMessageBox("Error saving settings.", ex.Message);
                     }
                 }
-                PopulateSettings(Helper.FileSystem.MinerSettingsPath.FullName);
+                PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
             }
         }
 
@@ -1124,7 +1160,7 @@ namespace SoliditySHA3MinerUI
         {
             if (Dispatcher.CheckAccess())
             {
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(Helper.FileSystem.MinerSettingsPath.FullName);
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(MinerInstance.MinerSettingsPath.FullName);
 
                 trvSettings.ItemsSource = null;
                 trvSettings.Items.Clear();

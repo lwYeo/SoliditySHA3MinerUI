@@ -17,9 +17,33 @@ namespace SoliditySHA3MinerUI.Helper
         public static DirectoryInfo AppDirectory => Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 
         public static DirectoryInfo DownloadDirectory => new DirectoryInfo(Path.Combine(LocalAppDirectory.FullName, "Downloads"));
-        public static DirectoryInfo MinerDirectory => new DirectoryInfo(Path.Combine(LocalAppDirectory.FullName, "SoliditySHA3Miner"));
-        public static DirectoryInfo LogDirectory => new DirectoryInfo(Path.Combine(MinerDirectory.FullName, "Log"));
-        public static FileInfo MinerSettingsPath => new FileInfo(Path.Combine(MinerDirectory.FullName, "SoliditySHA3Miner.conf"));
+
+        public static Process LaunchCommand(string name, string arguments = "", bool waitForExit = false, bool createNoWindow = false)
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = name,
+                    Arguments = arguments,
+                    CreateNoWindow = createNoWindow,
+                    UseShellExecute = !createNoWindow
+                }
+            };
+            process.Exited += (s, e) =>
+            {
+                try { ((Process)s).Dispose(); }
+                catch { }
+            };
+
+            process.Start();
+
+            if (waitForExit)
+                try { process.WaitForExit(); }
+                catch { }
+
+            return process;
+        }
 
         public static string GetProcessOutput(string filePath, string args)
         {
@@ -80,12 +104,12 @@ namespace SoliditySHA3MinerUI.Helper
                 extractPath += Path.DirectorySeparatorChar;
             try
             {
-                if (MinerDirectory.Exists && (MinerDirectory.GetFiles().Any() || MinerDirectory.GetDirectories().Any()))
+                if (MinerInstance.MinerDirectory.Exists && (MinerInstance.MinerDirectory.GetFiles().Any() || MinerInstance.MinerDirectory.GetDirectories().Any()))
                 {
-                    var backupDirPath = new DirectoryInfo(MinerDirectory.FullName + "_backup" + DateTime.Now.ToFileTime());
+                    var backupDirPath = new DirectoryInfo(MinerInstance.MinerDirectory.FullName + "_backup" + DateTime.Now.ToFileTime());
                     if (backupDirPath.Exists) backupDirPath.Delete();
 
-                    MinerDirectory.MoveTo(backupDirPath.FullName);
+                    MinerInstance.MinerDirectory.MoveTo(backupDirPath.FullName);
                 }
 
                 using (var archive = ZipFile.OpenRead(filePath))
@@ -95,7 +119,7 @@ namespace SoliditySHA3MinerUI.Helper
 
                     if (!archive.Entries.Any(e => e.FullName.EndsWith("SoliditySHA3Miner.dll"))) return false;
 
-                    UnzipArchive(archive, MinerDirectory.FullName, pathToTruncate);
+                    UnzipArchive(archive, MinerInstance.MinerDirectory.FullName, pathToTruncate);
                     return true;
                 }
             }

@@ -73,7 +73,7 @@ namespace SoliditySHA3MinerUI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3600")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7200")]
         public uint CheckVersionInterval {
             get {
                 return ((uint)(this["CheckVersionInterval"]));
