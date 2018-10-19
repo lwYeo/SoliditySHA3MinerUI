@@ -12,6 +12,7 @@ namespace SoliditySHA3MinerUI
         bool IsRunning { get; }
         string Log { get; }
         uint MaxLogLines { get; set; }
+        uint WatchDogInterval { get; set; }
 
         void ClearLogs();
 

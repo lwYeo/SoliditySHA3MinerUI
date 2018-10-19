@@ -548,7 +548,11 @@ namespace SoliditySHA3MinerUI
                 if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
             }
             catch { }
-            finally { _minerInstance = null; }
+            finally
+            {
+                _minerInstance = null;
+                this.BeginInvoke(() => tswLaunch.IsChecked = false);
+            }
         }
 
         private void _checkConnectionTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -891,6 +895,7 @@ namespace SoliditySHA3MinerUI
                 _minerInstance = new MinerInstance(Properties.Settings.Default.PreLaunchScript);
                 _minerInstance.Exited += _minerInstance_Exited;
                 _minerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
+                _minerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
 
                 if (!_minerInstance.Start())
                 {
@@ -898,7 +903,7 @@ namespace SoliditySHA3MinerUI
                     return;
                 }
                 MinerProcessor.URI = apiUriPath;
-                MinerProcessor.Interval = 5000;
+                MinerProcessor.Interval = Properties.Settings.Default.StatusInterval;
                 _isAPIReceived = false;
 
                 MinerProcessor.Start();
@@ -1036,6 +1041,10 @@ namespace SoliditySHA3MinerUI
                             _checkConnectionTimer.Interval = Properties.Settings.Default.CheckConnectionInterval;
                             _checkMinerVersionTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
                             _checkUiTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
+                            
+                            MinerProcessor.Interval = Properties.Settings.Default.StatusInterval;
+                            if (_minerInstance != null)
+                                _minerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
 
                             if ((bool)tswLaunch.IsChecked)
                             {

@@ -118,5 +118,17 @@ namespace SoliditySHA3MinerUI.Properties {
                 this["PreLaunchScript"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public uint StatusInterval {
+            get {
+                return ((uint)(this["StatusInterval"]));
+            }
+            set {
+                this["StatusInterval"] = value;
+            }
+        }
     }
 }

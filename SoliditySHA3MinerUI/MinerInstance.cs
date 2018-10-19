@@ -20,6 +20,7 @@ namespace SoliditySHA3MinerUI
 
         private object _loggingLock;
         private uint _loggedLinesCount;
+        private System.Timers.Timer _watchdogTimer;
 
         #region P/Invoke
 
@@ -59,6 +60,19 @@ namespace SoliditySHA3MinerUI
 
         public uint MaxLogLines { get; set; }
 
+        private uint _WatchDogInterval;
+        public uint WatchDogInterval
+        {
+            get => _WatchDogInterval;
+            set
+            {
+                _WatchDogInterval = value;
+
+                if (_watchdogTimer != null)
+                    _watchdogTimer.Interval = 1000 * value;
+            }
+        }
+
         public void ClearLogs()
         {
             lock (_loggingLock)
@@ -76,11 +90,17 @@ namespace SoliditySHA3MinerUI
             {
                 base.Start();
                 BeginOutputReadLine();
-                Thread.Yield();
-                Thread.Sleep(0);
-                Refresh();
 
+                Thread.Yield();
+                Thread.Sleep(200);
+
+                Refresh();
                 IsRunning = !HasExited;
+
+                _watchdogTimer = new System.Timers.Timer(1000 * _WatchDogInterval) { AutoReset = true };
+                _watchdogTimer.Elapsed += _watchdogTimer_Elapsed;
+                _watchdogTimer.Start();
+
                 return IsRunning;
             }
             catch { return false; }
@@ -211,8 +231,22 @@ namespace SoliditySHA3MinerUI
             }
         }
 
+        private void _watchdogTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                Refresh();
+                if (HasExited) OnExited();
+            }
+            catch (Exception) { OnExited(); }
+        }
+
         private void MinerInstance_Exited(object sender, EventArgs e)
         {
+            _watchdogTimer.Stop();
+            _watchdogTimer.Elapsed -= _watchdogTimer_Elapsed;
+            _watchdogTimer.Dispose();
+
             IsRunning = false;
             Dispose();
         }

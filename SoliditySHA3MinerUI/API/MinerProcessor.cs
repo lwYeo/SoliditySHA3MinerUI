@@ -30,8 +30,8 @@ namespace SoliditySHA3MinerUI.API
 
         public double Interval
         {
-            get => _timer.Interval;
-            set => _timer.Interval = value;
+            get => _timer.Interval / 1000;
+            set => _timer.Interval = (1000 * value);
         }
 
         public MinerProcessor(MainWindow ui)
@@ -40,7 +40,7 @@ namespace SoliditySHA3MinerUI.API
 
             _ProcessList = new List<Tuple<Process, TimeSpan, DateTime>>();
 
-            _timer = new Timer(5000) { AutoReset = true };
+            _timer = new Timer(1000) { AutoReset = true };
             _timer.Elapsed += _timer_Elapsed;
 
             _UI = ui;
