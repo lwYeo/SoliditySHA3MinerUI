@@ -863,7 +863,7 @@ namespace SoliditySHA3MinerUI
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "msiexec",
-                Arguments = string.Format("/package {0} /passive", installerFilePath)
+                Arguments = string.Format("/package \"{0}\" /passive", installerFilePath)
             });
             Application.Current.Shutdown();
         }
@@ -1000,6 +1000,27 @@ namespace SoliditySHA3MinerUI
                             _checkConnectionTimer.Interval = Properties.Settings.Default.CheckConnectionInterval;
                             _checkMinerVersionTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
                             _checkUiTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
+
+                            if ((bool)tswLaunch.IsChecked)
+                            {
+                                if (Properties.Settings.Default.AllowAnimation)
+                                {
+                                    var animation = new BrushAnimation
+                                    {
+                                        From = tswLaunch.OffSwitchBrush,
+                                        To = tswLaunch.OnSwitchBrush,
+                                        Duration = TimeSpan.FromSeconds(1.25),
+                                        RepeatBehavior = RepeatBehavior.Forever,
+                                        AutoReverse = true
+                                    };
+                                    retLaunch.BeginAnimation(Shape.FillProperty, animation);
+                                }
+                                else
+                                {
+                                    retLaunch.BeginAnimation(Shape.FillProperty, null);
+                                    retLaunch.Fill = tswLaunch.OnSwitchBrush;
+                                }
+                            }
                         }
                         else
                         {
@@ -1105,13 +1126,14 @@ namespace SoliditySHA3MinerUI
             {
                 _savedSettings = Helper.FileSystem.DeserializeFromFile(Helper.FileSystem.MinerSettingsPath.FullName);
 
-                MinerProcessor.SetSummaryToPreMineState();
-
                 trvSettings.ItemsSource = null;
                 trvSettings.Items.Clear();
                 trvSettings.ItemsSource = _savedSettings.DeepClone();
 
                 _isSettingsChanged = false;
+
+                if (!(bool)tswLaunch.IsChecked)
+                    MinerProcessor.SetSummaryToPreMineState();
             }
             else
             {
