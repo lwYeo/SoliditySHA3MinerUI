@@ -860,7 +860,11 @@ namespace SoliditySHA3MinerUI
 
         private void UpdateUI(string installerFilePath)
         {
-            System.Diagnostics.Process.Start(installerFilePath);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "msiexec",
+                Arguments = string.Format("/package {0} /passive", installerFilePath)
+            });
             Application.Current.Shutdown();
         }
 
