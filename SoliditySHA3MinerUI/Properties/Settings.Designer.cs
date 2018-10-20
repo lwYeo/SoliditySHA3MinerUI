@@ -130,5 +130,17 @@ namespace SoliditySHA3MinerUI.Properties {
                 this["StatusInterval"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int RelaunchAfterCooldown {
+            get {
+                return ((int)(this["RelaunchAfterCooldown"]));
+            }
+            set {
+                this["RelaunchAfterCooldown"] = value;
+            }
+        }
     }
 }

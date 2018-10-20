@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -216,6 +217,7 @@ namespace SoliditySHA3MinerUI.Helper
                 filePath.Refresh();
 
                 controller = await mainWindow.ShowProgressAsync("Please wait...", "Downloading miner", isCancelable: true);
+                controller.SetProgressBarForegroundBrush(Brushes.Orange);
                 controller.SetIndeterminate();
                 controller.Maximum = 100d;
 
@@ -274,6 +276,7 @@ namespace SoliditySHA3MinerUI.Helper
                 filePath.Refresh();
 
                 controller = await mainWindow.ShowProgressAsync("Please wait...", "Downloading GUI installer", isCancelable: true);
+                controller.SetProgressBarForegroundBrush(Brushes.Orange);
                 controller.SetIndeterminate();
                 controller.Maximum = 100d;
 

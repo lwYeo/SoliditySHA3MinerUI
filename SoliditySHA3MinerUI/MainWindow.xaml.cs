@@ -109,6 +109,24 @@ namespace SoliditySHA3MinerUI
             }
         }
 
+        private bool _StickyTriggerLaunch;
+        private bool StickyTriggerLaunch
+        {
+            get => _StickyTriggerLaunch;
+            set
+            {
+                Task.Factory.StartNew(async () =>
+                {
+                    while (MinerInstance != null)
+                        await Task.Delay(500);
+
+                    await Task.Delay(1000);
+                    _StickyTriggerLaunch = false;
+                });
+                _StickyTriggerLaunch = true;
+            }
+        }
+
         #endregion Declaration & Properties
 
         #region Initialization
@@ -172,12 +190,9 @@ namespace SoliditySHA3MinerUI
                 _checkMinerVersionTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
                 _checkMinerVersionTimer.Elapsed += _checkMinerVersionTimer_Elapsed;
                 _checkMinerVersionTimer.Start();
-            })
-            .ContinueWith((t) =>
-            {
+
                 this.BeginInvoke(() => IsEnabled = true);
 
-                Task.Delay(1000 * 30);
                 _checkUiTimer_Elapsed(this, null);
 
                 _checkUiTimer = new Timer(Properties.Settings.Default.CheckVersionInterval * 1000) { AutoReset = true };
@@ -217,6 +232,7 @@ namespace SoliditySHA3MinerUI
         private async void SoliditySHA3Miner_Loaded(object sender, RoutedEventArgs e)
         {
             var controller = await this.ShowProgressAsync("Please wait...", "Initializing");
+            controller.SetProgressBarForegroundBrush(Brushes.Orange);
             controller.SetIndeterminate();
 
             InitializeProcess();
@@ -475,6 +491,11 @@ namespace SoliditySHA3MinerUI
             _isPreLaunchChanged = false;
         }
 
+        private void tswLaunch_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            StickyTriggerLaunch = true;
+        }
+        
         #endregion Control Events
 
         #region Event Handlers
@@ -536,6 +557,7 @@ namespace SoliditySHA3MinerUI
 
         private void _minerInstance_Exited(object sender, EventArgs e)
         {
+            var relaunchMiner = !StickyTriggerLaunch;
             try
             {
                 MinerInstance.Exited -= _minerInstance_Exited;
@@ -552,6 +574,9 @@ namespace SoliditySHA3MinerUI
             {
                 MinerInstance = null;
                 this.BeginInvoke(() => tswLaunch.IsChecked = false);
+
+                if (relaunchMiner)
+                    Task.Factory.StartNew(() => RelaunchMiner());
             }
         }
 
@@ -781,6 +806,7 @@ namespace SoliditySHA3MinerUI
                     return;
                 }
                 controller = await this.ShowProgressAsync("Please wait...", "Starting miner");
+                controller.SetProgressBarForegroundBrush(Brushes.Orange);
                 controller.SetIndeterminate();
                 await Task.Yield();
                 await Task.Delay(200);
@@ -833,6 +859,7 @@ namespace SoliditySHA3MinerUI
             try
             {
                 controller = await this.ShowProgressAsync("Please wait...", "Stopping miner");
+                controller.SetProgressBarForegroundBrush(Brushes.Orange);
                 controller.SetIndeterminate();
                 await Task.Yield();
                 await Task.Delay(200);
@@ -855,7 +882,38 @@ namespace SoliditySHA3MinerUI
             }
         }
 
-        #endregion User Action Processes
+        private async Task RelaunchMiner()
+        {
+            if (Dispatcher.CheckAccess())
+            {
+                var isCancelled = false;
+                try
+                {
+                    var controller = await this.ShowProgressAsync("Please wait...", "Restarting miner after cooldown");
+                    controller.SetProgressBarForegroundBrush(Brushes.Orange);
+                    controller.Maximum = Properties.Settings.Default.RelaunchAfterCooldown;
+                    controller.SetCancelable(true);
+                    controller.Canceled += (s, e) => isCancelled = true;
+
+                    for (var i = 1; i <= Properties.Settings.Default.RelaunchAfterCooldown; i++)
+                    {
+                        if (isCancelled) break;
+
+                        await Task.Delay(1000);
+                        controller.SetProgress(i);
+                    }
+                    await controller.CloseAsync();
+
+                    if (isCancelled) return;
+
+                    this.BeginInvoke(() => tswLaunch.IsChecked = true);
+                }
+                catch { }
+            }
+            else { this.BeginInvoke(async () => await RelaunchMiner()); }
+        }
+
+        #endregion Launch Process
 
         #region Settings
 

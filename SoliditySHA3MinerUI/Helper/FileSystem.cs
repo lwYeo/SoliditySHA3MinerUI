@@ -74,7 +74,7 @@ namespace SoliditySHA3MinerUI.Helper
             while (string.IsNullOrEmpty(sJSON) && retryCount < 20)
             {
                 try { sJSON = File.ReadAllText(filePath); }
-                catch { Task.Delay(100); }
+                catch { Task.Delay(100).Wait(); }
                 retryCount++;
             }
 
