@@ -18,7 +18,10 @@
              Compressed="yes"
              InstallScope="perMachine"
              InstallPrivileges="elevated" />
-
+    
+    <Icon Id="SoliditySHA3MinerUI.ico" SourceFile="..\SoliditySHA3MinerUI\SoliditySHA3MinerUI.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="SoliditySHA3MinerUI.ico" />
+    
     <UIRef Id="WixUI_Minimal" />
 
     <Property Id="WIXUI_INSTALLDIR"
