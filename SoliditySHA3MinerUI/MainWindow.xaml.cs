@@ -7,7 +7,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -28,6 +27,7 @@ namespace SoliditySHA3MinerUI
         #region Declaration & Properties
 
         public API.MinerProcessor MinerProcessor { get; }
+        public IMinerInstance MinerInstance { get; private set; }
 
         private readonly VisualBrush _networkConnectedBrush;
         private readonly VisualBrush _networkDisconnectedBrush;
@@ -41,7 +41,6 @@ namespace SoliditySHA3MinerUI
 
         private JToken _savedSettings;
         private FileSystemWatcher _settingFileWatcher;
-        private IMinerInstance _minerInstance;
 
         private bool _isConnected;
         private bool _isLastConnected;
@@ -50,7 +49,7 @@ namespace SoliditySHA3MinerUI
         private bool _isClosing;
         private bool _isAPIReceived;
         private string _minerDownloadURL;
-        private string _uiDownloadURL;
+        private string _uiInstallerDownloadURL;
 
         private string CurrentTheme
         {
@@ -161,8 +160,8 @@ namespace SoliditySHA3MinerUI
                 _checkConnectionTimer_Elapsed(this, null);
                 _checkMinerVersionTimer_Elapsed(this, null);
 
-                if (!MinerInstance.MinerDirectory.Exists)
-                    MinerInstance.MinerDirectory.Create();
+                if (!SoliditySHA3MinerUI.MinerInstance.MinerDirectory.Exists)
+                    SoliditySHA3MinerUI.MinerInstance.MinerDirectory.Create();
 
                 InitializeSettingFileWatcher();
 
@@ -197,11 +196,12 @@ namespace SoliditySHA3MinerUI
                 _settingFileWatcher.Dispose();
             }
 
-            if (MinerInstance.MinerSettingsPath.Exists) PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
+            if (SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.Exists)
+                PopulateSettings(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
 
-            _settingFileWatcher = new FileSystemWatcher(MinerInstance.MinerDirectory.FullName)
+            _settingFileWatcher = new FileSystemWatcher(SoliditySHA3MinerUI.MinerInstance.MinerDirectory.FullName)
             {
-                Filter = MinerInstance.MinerSettingsPath.Name,
+                Filter = SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.Name,
                 NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
                 IncludeSubdirectories = false,
                 EnableRaisingEvents = true
@@ -304,8 +304,8 @@ namespace SoliditySHA3MinerUI
 
         private void btnClearLogs_Click(object sender, RoutedEventArgs e)
         {
-            if (_minerInstance != null)
-                _minerInstance?.ClearLogs();
+            if (MinerInstance != null)
+                MinerInstance?.ClearLogs();
             else
                 rtbLogs.Document.Blocks.Clear();
         }
@@ -330,18 +330,18 @@ namespace SoliditySHA3MinerUI
 
             await SaveSettings();
 
-            DownloadLatestMiner();
+            await Helper.Processor.DownloadLatestMiner(this, _minerDownloadURL, DownloadMinerCompletedHandler);
         }
 
         private async void retUIVersion_OnMouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(_uiDownloadURL)) return;
+            if (string.IsNullOrWhiteSpace(_uiInstallerDownloadURL)) return;
 
             await StopMiner();
 
             await SaveSettings();
 
-            DownloadLatestUI();
+            await Helper.Processor.DownloadLatestUiInstaller(this, _uiInstallerDownloadURL, DownloadUiInstallerCompletedHandler);
         }
 
         private void txtPreLaunchCmd_TextChanged(object sender, TextChangedEventArgs e)
@@ -382,7 +382,7 @@ namespace SoliditySHA3MinerUI
             else
                 await StopMiner();
 
-            if (_minerInstance?.IsRunning ?? false)
+            if (MinerInstance?.IsRunning ?? false)
             {
                 if (Properties.Settings.Default.AllowAnimation)
                 {
@@ -477,7 +477,7 @@ namespace SoliditySHA3MinerUI
 
         #endregion Control Events
 
-        #region Object Events
+        #region Event Handlers
 
         private void MinerProcessor_OnResponse(API.MinerReport minerReport)
         {
@@ -538,19 +538,19 @@ namespace SoliditySHA3MinerUI
         {
             try
             {
-                _minerInstance.Exited -= _minerInstance_Exited;
-                _minerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
+                MinerInstance.Exited -= _minerInstance_Exited;
+                MinerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
 
                 Helper.Processor.GetAllRelatedProcessList().ForEach(p => p.Kill()); // Kill all stray processes
 
                 CurrentDevice = "Idle";
 
-                if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
+                if (_isClosing) this.Invoke(() => Application.Current.Shutdown());
             }
             catch { }
             finally
             {
-                _minerInstance = null;
+                MinerInstance = null;
                 this.BeginInvoke(() => tswLaunch.IsChecked = false);
             }
         }
@@ -598,7 +598,39 @@ namespace SoliditySHA3MinerUI
             settings = _savedSettings;
         }
 
-        #endregion Object Events
+        private void DownloadMinerCompletedHandler(bool isSuccess, FileInfo archiveFilePath)
+        {
+            if (!isSuccess)
+            {
+                Helper.Processor.ShowMessageBox("Error updating miner", "Downloaded archive does not contain update");
+                return;
+            }
+            else if (!archiveFilePath.Exists)
+            {
+                Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive missing");
+                return;
+            }
+            else if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath.FullName, SoliditySHA3MinerUI.MinerInstance.MinerDirectory.FullName))
+            {
+                var oldSettings = _savedSettings?.DeepClone();
+
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
+
+                Helper.Processor.UpdateSettings(oldSettings, _savedSettings);
+
+                InitializeSettingFileWatcher();
+
+                _checkMinerVersionTimer_Elapsed(this, null);
+            }
+        }
+
+        private void DownloadUiInstallerCompletedHandler(bool isSuccess, FileInfo installerFilePath)
+        {
+            if (isSuccess)
+                Helper.Processor.StartUiInstallerAndExit(installerFilePath);
+        }
+
+        #endregion Events Handlers
 
         #region Checking Processes
 
@@ -685,13 +717,13 @@ namespace SoliditySHA3MinerUI
                 {
                     if (localUiVersion >= latestUiVersion)
                     {
-                        _uiDownloadURL = string.Empty;
-                        retUIVersion.ToolTip = "Your are using the latest UI version";
+                        _uiInstallerDownloadURL = string.Empty;
+                        retUIVersion.ToolTip = "Your are using the latest GUI version";
                         retUIVersion.Fill = (Brush)FindResource("GrayNormalBrush");
                     }
                     else
                     {
-                        _uiDownloadURL = latestUiDownloadUrl;
+                        _uiInstallerDownloadURL = latestUiDownloadUrl;
                         retUIVersion.ToolTip = "New release available, click here to download";
                         retUIVersion.Fill = Brushes.Yellow;
                     }
@@ -735,145 +767,8 @@ namespace SoliditySHA3MinerUI
 
         #endregion Checking Processes
 
-        #region User Action Processes
-
-        private async void DownloadLatestMiner()
-        {
-            ProgressDialogController controller = null;
-            try
-            {
-                var fileName = System.IO.Path.GetFileName(new Uri(_minerDownloadURL).LocalPath);
-                var filePath = new FileInfo(System.IO.Path.Combine(Helper.FileSystem.DownloadDirectory.FullName, fileName));
-
-                if (!filePath.Directory.Exists) filePath.Directory.Create();
-                if (filePath.Exists) filePath.Delete(); filePath.Refresh();
-
-                controller = await this.ShowProgressAsync("Please wait...", "Downloading miner", isCancelable: true);
-                controller.SetIndeterminate();
-                controller.Maximum = 100d;
-
-                var downloader = Helper.Network.DownloadFromURL(_minerDownloadURL, filePath.FullName,
-                    new DownloadProgressChangedEventHandler((s, progressEvent) =>
-                    {
-                        this.BeginInvoke(() =>
-                        {
-                            var percentage = (double)progressEvent.BytesReceived / progressEvent.TotalBytesToReceive * 100;
-                            controller.SetProgress(percentage);
-                        });
-                    }),
-                    new System.ComponentModel.AsyncCompletedEventHandler((s, completedEvent) =>
-                    {
-                        this.BeginInvoke(() =>
-                        {
-                            if (completedEvent.Error != null)
-                            {
-                                if (!(completedEvent.Error is WebException) || ((WebException)completedEvent.Error).Status != WebExceptionStatus.RequestCanceled)
-                                    Helper.Processor.ShowMessageBox("Error downloading miner", completedEvent.Error.Message);
-                            }
-                            else
-                            {
-                                filePath.Refresh();
-
-                                if (filePath.Exists)
-                                    UpdateMiner(filePath.FullName);
-                                else
-                                    Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive missing");
-                            }
-                            if (controller.IsOpen) controller.CloseAsync();
-                        });
-                    }));
-
-                controller.Canceled += (s, cancelEvent) => downloader.CancelAsync();
-                controller.Closed += (s, closeEvent) => downloader.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Helper.Processor.ShowMessageBox("Error downloading miner", ex.Message);
-            }
-        }
-
-        private async void DownloadLatestUI()
-        {
-            ProgressDialogController controller = null;
-            try
-            {
-                var fileName = System.IO.Path.GetFileName(new Uri(_uiDownloadURL).LocalPath);
-                var filePath = new FileInfo(System.IO.Path.Combine(Helper.FileSystem.DownloadDirectory.FullName, fileName));
-
-                if (!filePath.Directory.Exists) filePath.Directory.Create();
-                if (filePath.Exists) filePath.Delete(); filePath.Refresh();
-
-                controller = await this.ShowProgressAsync("Please wait...", "Downloading GUI", isCancelable: true);
-                controller.SetIndeterminate();
-                controller.Maximum = 100d;
-
-                var downloader = Helper.Network.DownloadFromURL(_uiDownloadURL, filePath.FullName,
-                    new DownloadProgressChangedEventHandler((s, progressEvent) =>
-                    {
-                        this.BeginInvoke(() =>
-                        {
-                            var percentage = (double)progressEvent.BytesReceived / progressEvent.TotalBytesToReceive * 100;
-                            controller.SetProgress(percentage);
-                        });
-                    }),
-                    new System.ComponentModel.AsyncCompletedEventHandler((s, completedEvent) =>
-                    {
-                        this.BeginInvoke(() =>
-                        {
-                            if (completedEvent.Error != null)
-                            {
-                                if (!(completedEvent.Error is WebException) || ((WebException)completedEvent.Error).Status != WebExceptionStatus.RequestCanceled)
-                                    Helper.Processor.ShowMessageBox("Error downloading GUI", completedEvent.Error.Message);
-                            }
-                            else
-                            {
-                                filePath.Refresh();
-
-                                if (filePath.Exists)
-                                    UpdateUI(filePath.FullName);
-                                else
-                                    Helper.Processor.ShowMessageBox("Error downloading GUI", "Downloaded archive missing");
-                            }
-                            controller.CloseAsync();
-                        });
-                    }));
-
-                controller.Canceled += (s, cancelEvent) => downloader.CancelAsync();
-                controller.Closed += (s, closeEvent) => downloader.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Helper.Processor.ShowMessageBox("Error downloading GUI", ex.Message);
-            }
-            finally { if (controller != null && controller.IsOpen) await controller.CloseAsync(); }
-        }
-
-        private void UpdateMiner(string archiveFilePath)
-        {
-            var oldSettings = _savedSettings?.DeepClone();
-
-            if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath, MinerInstance.MinerDirectory.FullName))
-            {
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(MinerInstance.MinerSettingsPath.FullName);
-
-                UpdateSettings(oldSettings, _savedSettings);
-
-                InitializeSettingFileWatcher();
-
-                _checkMinerVersionTimer_Elapsed(this, null);
-            }
-            else { Helper.Processor.ShowMessageBox("Error updating miner", "Downloaded archive does not contain update"); }
-
-            InitializeSettingFileWatcher();
-        }
-
-        private void UpdateUI(string installerFilePath)
-        {
-            Helper.FileSystem.LaunchCommand("msiexec", arguments: string.Format("/package \"{0}\" /passive", installerFilePath), createNoWindow:true);
-
-            Application.Current.Shutdown();
-        }
-
+        #region Launch Process
+        
         private async Task LaunchMiner()
         {
             ProgressDialogController controller = null;
@@ -891,13 +786,14 @@ namespace SoliditySHA3MinerUI
                 await Task.Delay(200);
 
                 rtbLogs.Document.Blocks.Clear();
+                _checkConnectionTimer_Elapsed(this, null);
 
-                _minerInstance = new MinerInstance(Properties.Settings.Default.PreLaunchScript);
-                _minerInstance.Exited += _minerInstance_Exited;
-                _minerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
-                _minerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
+                MinerInstance = new MinerInstance(Properties.Settings.Default.PreLaunchScript);
+                MinerInstance.Exited += _minerInstance_Exited;
+                MinerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
+                MinerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
 
-                if (!_minerInstance.Start())
+                if (!MinerInstance.Start())
                 {
                     tswLaunch.IsChecked = false;
                     return;
@@ -931,7 +827,7 @@ namespace SoliditySHA3MinerUI
 
         private async Task StopMiner()
         {
-            if (_minerInstance == null) return;
+            if (MinerInstance == null) return;
 
             ProgressDialogController controller = null;
             try
@@ -942,10 +838,12 @@ namespace SoliditySHA3MinerUI
                 await Task.Delay(200);
 
                 MinerProcessor.Stop();
-                _minerInstance.Stop();
+                MinerInstance.Stop();
                 await Task.Delay(1000);
 
                 tswLaunch.IsChecked = false;
+
+                _checkConnectionTimer_Elapsed(this, null);
             }
             catch (Exception ex)
             {
@@ -972,12 +870,12 @@ namespace SoliditySHA3MinerUI
 
             Properties.Settings.Default.Reset();
 
-            if (MinerInstance.MinerSettingsPath.Exists)
-                MinerInstance.MinerSettingsPath.Delete();
+            if (SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.Exists)
+                SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.Delete();
 
-            if (MinerInstance.MinerPath.Exists)
+            if (SoliditySHA3MinerUI.MinerInstance.MinerPath.Exists)
             {
-                var process = Helper.FileSystem.LaunchCommand("dotnet", MinerInstance.MinerPath.FullName, createNoWindow:true);
+                var process = Helper.FileSystem.LaunchCommand("dotnet", SoliditySHA3MinerUI.MinerInstance.MinerPath.FullName, createNoWindow:true);
                 try
                 {
                     for (var i = 0; i < 10; i++)
@@ -991,7 +889,7 @@ namespace SoliditySHA3MinerUI
                 }
                 catch { }
 
-                PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
+                PopulateSettings(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
             }
         }
 
@@ -1027,24 +925,27 @@ namespace SoliditySHA3MinerUI
                 {
                     try
                     {
-                        if (_minerInstance == null || !_minerInstance.IsRunning)
+                        if (MinerInstance == null || !MinerInstance.IsRunning)
                             MinerProcessor.SetSummaryToPreMineState();
 
                         Properties.Settings.Default.Save();
 
-                        TraverseSettings(trvSettings.ItemsSource as JToken, setting => NormalizeSettingsValue(setting));
-
-                        if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, MinerInstance.MinerSettingsPath.FullName))
+                        Helper.Processor.TraverseSettings(trvSettings.ItemsSource as JToken, setting =>
                         {
-                            if (_isClosing) this.BeginInvoke(() => Application.Current.Shutdown());
+                            Helper.Processor.NormalizeSettingsValue(setting, _savedSettings);
+                        });
+
+                        if (Helper.FileSystem.SerializeToFile(trvSettings.ItemsSource, SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName))
+                        {
+                            if (_isClosing) (this).Invoke(() => Application.Current.Shutdown());
 
                             _checkConnectionTimer.Interval = Properties.Settings.Default.CheckConnectionInterval;
                             _checkMinerVersionTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
                             _checkUiTimer.Interval = Properties.Settings.Default.CheckVersionInterval;
-                            
+
                             MinerProcessor.Interval = Properties.Settings.Default.StatusInterval;
-                            if (_minerInstance != null)
-                                _minerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
+                            if (MinerInstance != null)
+                                MinerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
 
                             if ((bool)tswLaunch.IsChecked)
                             {
@@ -1070,7 +971,7 @@ namespace SoliditySHA3MinerUI
                         else
                         {
                             foSettings.IsOpen = true;
-                            throw new Exception("Failed to save " + MinerInstance.MinerSettingsPath.Name);
+                            throw new Exception("Failed to save " + SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.Name);
                         }
                     }
                     catch (Exception ex)
@@ -1078,90 +979,7 @@ namespace SoliditySHA3MinerUI
                         Helper.Processor.ShowMessageBox("Error saving settings.", ex.Message);
                     }
                 }
-                PopulateSettings(MinerInstance.MinerSettingsPath.FullName);
-            }
-        }
-
-        private void TraverseSettings(JToken settings, Action<JValue> action)
-        {
-            switch (settings.Type)
-            {
-                case JTokenType.Object:
-                    foreach (JProperty childSettings in settings.Children<JProperty>())
-                        TraverseSettings(childSettings.Value, action);
-                    break;
-
-                case JTokenType.Array:
-                    foreach (JToken childSettings in settings.Children())
-                        TraverseSettings(childSettings, action);
-                    break;
-
-                default:
-                    action(settings as JValue);
-                    break;
-            }
-        }
-
-        private void UpdateSettings(JToken oldSettings, JToken newSettings)
-        {
-            if (oldSettings == null || newSettings == null) return;
-
-            TraverseSettings(oldSettings, oldSetting =>
-            {
-                if (!(newSettings.SelectToken(oldSetting.Path) is JValue newSetting)) return;
-                try
-                {
-                    switch (oldSetting.Type)
-                    {
-                        case JTokenType.String:
-                            newSetting.Value = oldSetting.ToString();
-                            break;
-
-                        case JTokenType.Boolean:
-                            newSetting.Value = oldSetting.ToObject<bool>();
-                            break;
-
-                        case JTokenType.Integer:
-                            newSetting.Value = oldSetting.ToObject<long>();
-                            break;
-
-                        case JTokenType.Float:
-                            newSetting.Value = oldSetting.ToObject<decimal>();
-                            break;
-                    }
-                }
-                catch { }
-            });
-        }
-
-        private void NormalizeSettingsValue(JValue settings)
-        {
-            JTokenType settingType = JTokenType.None;
-            try
-            {
-                settingType = _savedSettings.SelectToken(settings.Path).Type;
-
-                switch (settingType)
-                {
-                    case JTokenType.String:
-                        break; // Do nothing
-
-                    case JTokenType.Boolean:
-                        settings.Value = settings.ToObject<bool>();
-                        break;
-
-                    case JTokenType.Integer:
-                        settings.Value = settings.ToObject<long>();
-                        break;
-
-                    case JTokenType.Float:
-                        settings.Value = settings.ToObject<decimal>();
-                        break;
-                }
-            }
-            catch (Exception)
-            {
-                throw new Exception(string.Format("Failed to parse '{0}' into {1} at '{2}'", settings.Value, settingType, settings.Path));
+                PopulateSettings(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
             }
         }
 
@@ -1169,7 +987,7 @@ namespace SoliditySHA3MinerUI
         {
             if (Dispatcher.CheckAccess())
             {
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(MinerInstance.MinerSettingsPath.FullName);
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
 
                 trvSettings.ItemsSource = null;
                 trvSettings.Items.Clear();

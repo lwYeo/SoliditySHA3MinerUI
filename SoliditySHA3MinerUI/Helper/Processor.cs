@@ -1,11 +1,17 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
@@ -197,9 +203,255 @@ namespace SoliditySHA3MinerUI.Helper
             return processList;
         }
 
+        public async static Task DownloadLatestMiner(MainWindow mainWindow, string url, Action<bool, FileInfo> onDownloadMinerComplete)
+        {
+            ProgressDialogController controller = null;
+            try
+            {
+                var fileName = Path.GetFileName(new Uri(url).LocalPath);
+                var filePath = new FileInfo(Path.Combine(FileSystem.DownloadDirectory.FullName, fileName));
+
+                if (!filePath.Directory.Exists) filePath.Directory.Create();
+                if (filePath.Exists) filePath.Delete();
+                filePath.Refresh();
+
+                controller = await mainWindow.ShowProgressAsync("Please wait...", "Downloading miner", isCancelable: true);
+                controller.SetIndeterminate();
+                controller.Maximum = 100d;
+
+                await Task.Yield();
+                await Task.Delay(200);
+
+                var downloader = Network.DownloadFromURL(url, filePath.FullName,
+                    new DownloadProgressChangedEventHandler((s, progressEvent) =>
+                    {
+                        mainWindow.Invoke(() =>
+                        {
+                            var percentage = (double)progressEvent.BytesReceived / progressEvent.TotalBytesToReceive * 100;
+                            controller.SetProgress(percentage);
+                        });
+                    }),
+                    new System.ComponentModel.AsyncCompletedEventHandler(async (s, completedEvent) =>
+                    {
+                        await mainWindow.Invoke(async () =>
+                        {
+                            if (completedEvent.Error != null)
+                            {
+                                if (!(completedEvent.Error is WebException) || ((WebException)completedEvent.Error).Status != WebExceptionStatus.RequestCanceled)
+                                {
+                                    ShowMessageBox("Error downloading miner", completedEvent.Error.Message);
+                                    onDownloadMinerComplete(false, null);
+                                }
+                            }
+                            else
+                            {
+                                filePath.Refresh();
+                                onDownloadMinerComplete(true, filePath);
+                            }
+                            if (controller != null && controller.IsOpen) await controller.CloseAsync();
+                        });
+                    }));
+
+                controller.Canceled += (s, cancelEvent) => downloader.CancelAsync();
+                controller.Closed += (s, closeEvent) => downloader.Dispose();
+            }
+            catch (Exception ex)
+            {
+                ShowMessageBox("Error downloading miner", ex.Message);
+            }
+        }
+        
+        public async static Task DownloadLatestUiInstaller(MainWindow mainWindow, string url, Action<bool, FileInfo> onDownloadUiInstallerComplete)
+        {
+            ProgressDialogController controller = null;
+            try
+            {
+                var fileName = Path.GetFileName(new Uri(url).LocalPath);
+                var filePath = new FileInfo(Path.Combine(FileSystem.DownloadDirectory.FullName, fileName));
+
+                if (!filePath.Directory.Exists) filePath.Directory.Create();
+                if (filePath.Exists) filePath.Delete();
+                filePath.Refresh();
+
+                controller = await mainWindow.ShowProgressAsync("Please wait...", "Downloading GUI installer", isCancelable: true);
+                controller.SetIndeterminate();
+                controller.Maximum = 100d;
+
+                await Task.Yield();
+                await Task.Delay(200);
+
+                var downloader = Network.DownloadFromURL(url, filePath.FullName,
+                    new DownloadProgressChangedEventHandler((s, progressEvent) =>
+                    {
+                        mainWindow.Invoke(() =>
+                        {
+                            var percentage = (double)progressEvent.BytesReceived / progressEvent.TotalBytesToReceive * 100;
+                            controller.SetProgress(percentage);
+                        });
+                    }),
+                    new System.ComponentModel.AsyncCompletedEventHandler(async (s, completedEvent) =>
+                    {
+                        await mainWindow.Invoke(async () =>
+                        {
+                            if (completedEvent.Error != null)
+                            {
+                                if (!(completedEvent.Error is WebException) || ((WebException)completedEvent.Error).Status != WebExceptionStatus.RequestCanceled)
+                                {
+                                    ShowMessageBox("Error downloading GUI installer", completedEvent.Error.Message);
+                                    onDownloadUiInstallerComplete(false, null);
+                                }
+                            }
+                            else
+                            {
+                                filePath.Refresh();
+                                onDownloadUiInstallerComplete(true, filePath);
+                            }
+                            if (controller != null && controller.IsOpen) await controller.CloseAsync();
+                        });
+                    }));
+
+                controller.Canceled += (s, cancelEvent) => downloader.CancelAsync();
+                controller.Closed += (s, closeEvent) => downloader.Dispose();
+            }
+            catch (Exception ex)
+            {
+                ShowMessageBox("Error downloading GUI installer", ex.Message);
+            }
+        }
+
+        public static void StartUiInstallerAndExit(FileInfo installerFilePath)
+        {
+            if (!installerFilePath.Exists)
+            {
+                ShowMessageBox("Error", "GUI installer file not found");
+                return;
+            }
+
+            var uiFilePath = Assembly.GetEntryAssembly().Location;
+            var batchFilePath = new FileInfo(Path.Combine(FileSystem.LocalAppDirectory.FullName, "install.bat"));
+            if (batchFilePath.Exists) batchFilePath.Delete();
+            batchFilePath.Refresh();
+
+            using (var batchStream = batchFilePath.Create())
+            {
+                using (var batchWriter = new BinaryWriter(batchStream))
+                {
+                    var installProcedure = new StringBuilder();
+                    installProcedure.AppendLine(string.Format("SET InstallerFilePath=\"{0}\"", installerFilePath));
+                    installProcedure.AppendLine(string.Format("SET UiFilePath=\"{0}\"", uiFilePath));
+                    installProcedure.AppendLine(string.Format(""));
+                    installProcedure.AppendLine(string.Format("msiexec /package %InstallerFilePath% /passive"));
+                    installProcedure.AppendLine(string.Format("TIMEOUT /T 1 >NUL"));
+                    installProcedure.AppendLine(string.Format("START /b cmd /c %UiFilePath%"));
+                    installProcedure.AppendLine(string.Format("TIMEOUT /T 1 >NUL"));
+                    installProcedure.AppendLine(string.Format(""));
+                    installProcedure.AppendLine(string.Format("DEL \"%~f0\"")); // Deletes itself at the end of process
+
+                    batchWriter.Write(Encoding.GetEncoding(850).GetBytes(installProcedure.ToString()));
+                    batchWriter.Flush();
+                    batchWriter.Close();
+                }
+            }
+
+            Process.Start(new ProcessStartInfo(batchFilePath.FullName)
+            {
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            })
+            .Dispose();
+
+            Application.Current.Shutdown();
+        }
+
+        public static void TraverseSettings(JToken settings, Action<JValue> action)
+        {
+            switch (settings.Type)
+            {
+                case JTokenType.Object:
+                    foreach (JProperty childSettings in settings.Children<JProperty>())
+                        TraverseSettings(childSettings.Value, action);
+                    break;
+
+                case JTokenType.Array:
+                    foreach (JToken childSettings in settings.Children())
+                        TraverseSettings(childSettings, action);
+                    break;
+
+                default:
+                    action(settings as JValue);
+                    break;
+            }
+        }
+
+        public static void UpdateSettings(JToken oldSettings, JToken newSettings)
+        {
+            if (oldSettings == null || newSettings == null) return;
+
+            TraverseSettings(oldSettings, oldSetting =>
+            {
+                if (!(newSettings.SelectToken(oldSetting.Path) is JValue newSetting)) return;
+                try
+                {
+                    switch (oldSetting.Type)
+                    {
+                        case JTokenType.String:
+                            newSetting.Value = oldSetting.ToString();
+                            break;
+
+                        case JTokenType.Boolean:
+                            newSetting.Value = oldSetting.ToObject<bool>();
+                            break;
+
+                        case JTokenType.Integer:
+                            newSetting.Value = oldSetting.ToObject<long>();
+                            break;
+
+                        case JTokenType.Float:
+                            newSetting.Value = oldSetting.ToObject<decimal>();
+                            break;
+                    }
+                }
+                catch { }
+            });
+        }
+
+        public static void NormalizeSettingsValue(JValue setting, JToken savedSettings)
+        {
+            JTokenType settingType = JTokenType.None;
+            try
+            {
+                settingType = savedSettings.SelectToken(setting.Path).Type;
+
+                switch (settingType)
+                {
+                    case JTokenType.String:
+                        break; // Do nothing
+
+                    case JTokenType.Boolean:
+                        setting.Value = setting.ToObject<bool>();
+                        break;
+
+                    case JTokenType.Integer:
+                        setting.Value = setting.ToObject<long>();
+                        break;
+
+                    case JTokenType.Float:
+                        setting.Value = setting.ToObject<decimal>();
+                        break;
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception(string.Format("Failed to parse '{0}' into {1} at '{2}'", setting.Value, settingType, setting.Path));
+            }
+        }
+
         public static void ShowMessageBox(string title, string message, params string[] messageArgs)
         {
-            MessageBox.Show(Application.Current.MainWindow, string.Format(message, messageArgs), title);
+            if (Application.Current.MainWindow.Dispatcher.CheckAccess())
+                MessageBox.Show(Application.Current.MainWindow, string.Format(message, messageArgs), title);
+            else
+                Application.Current.MainWindow.Invoke(() => ShowMessageBox(title, message, messageArgs));
         }
     }
 }

@@ -478,7 +478,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                 <ScaleTransform ScaleX="0.5"
                                                 ScaleY="0.5" />
                                 <TranslateTransform X="30"
-                                                    Y="35" />
+                                                    Y="36" />
                             </TransformGroup>
                         </Controls:ToggleSwitch.RenderTransform>
                     </Controls:ToggleSwitch>
