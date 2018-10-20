@@ -138,6 +138,9 @@ namespace SoliditySHA3MinerUI
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Language = System.Windows.Markup.XmlLanguage.GetLanguage(CultureInfo.InvariantCulture.Name);
 
+            if (!Helper.FileSystem.LocalAppDirectory.Exists)
+                Helper.FileSystem.LocalAppDirectory.Create();
+
             CheckUserConfigFile();
 
             MinerProcessor = new API.MinerProcessor(this);
@@ -329,6 +332,11 @@ namespace SoliditySHA3MinerUI
         private async void btnResetSettings_OnClick(object sender, RoutedEventArgs e)
         {
             await ResetAllSettings();
+        }
+
+        private void btnAdvancedConfiguration_Click(object sender, RoutedEventArgs e)
+        {
+            Helper.FileSystem.LaunchCommand("explorer", SoliditySHA3MinerUI.MinerInstance.MinerDirectory.FullName);
         }
 
         private void retDotnetCoreVersion_MouseUp(object sender, MouseButtonEventArgs e)

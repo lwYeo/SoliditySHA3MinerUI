@@ -236,7 +236,7 @@
                     <Button Name="btnResetSettings"
                             Grid.Column="3"
                             Grid.Row="0"
-                            Width="80"
+                            Width="90"
                             Height="26"
                             FontSize="10"
                             Style="{DynamicResource AccentedSquareButtonStyle}"
@@ -245,6 +245,20 @@
                         <Button.RenderTransform>
                             <TranslateTransform X="92"
                                                 Y="-40" />
+                        </Button.RenderTransform>
+                    </Button>
+                    <Button Name="btnAdvancedConfiguration"
+                            Grid.Column="3"
+                            Grid.Row="0"
+                            Width="90"
+                            Height="26"
+                            FontSize="10"
+                            Style="{DynamicResource AccentedSquareButtonStyle}"
+                            Click="btnAdvancedConfiguration_Click">
+                        Advanced Config.
+                        <Button.RenderTransform>
+                            <TranslateTransform X="92"
+                                                Y="-10" />
                         </Button.RenderTransform>
                     </Button>
                     <TextBlock Name="txbRelaunchAfterCooldownLabel"
