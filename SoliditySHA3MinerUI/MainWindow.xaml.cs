@@ -996,6 +996,8 @@ namespace SoliditySHA3MinerUI
 
                         Properties.Settings.Default.Save();
 
+                        if (trvSettings.ItemsSource == null) return;
+
                         Helper.Processor.TraverseSettings(trvSettings.ItemsSource as JToken, setting =>
                         {
                             Helper.Processor.NormalizeSettingsValue(setting, _savedSettings);
@@ -1044,8 +1046,11 @@ namespace SoliditySHA3MinerUI
                     {
                         Helper.Processor.ShowMessageBox("Error saving settings.", ex.Message);
                     }
+                    finally
+                    {
+                        PopulateSettings(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
+                    }
                 }
-                PopulateSettings(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
             }
         }
 
@@ -1053,12 +1058,14 @@ namespace SoliditySHA3MinerUI
         {
             if (Dispatcher.CheckAccess())
             {
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
-
                 trvSettings.ItemsSource = null;
                 trvSettings.Items.Clear();
-                trvSettings.ItemsSource = _savedSettings.DeepClone();
 
+                if (_savedSettings != null)
+                {
+                    _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
+                    trvSettings.ItemsSource = _savedSettings.DeepClone();
+                }
                 _isSettingsChanged = false;
 
                 if (!(bool)tswLaunch.IsChecked)

@@ -93,10 +93,13 @@ namespace SoliditySHA3MinerUI.API
                 MinerReport.Summary.GpuMaxTemperature = int.MinValue;
                 MinerReport.Summary.CurrentChallenge = string.Empty;
 
-                MinerReport.Summary.MinerAddress = settings["minerAddress"].ToString();
-                MinerReport.Summary.MiningURL = (string.IsNullOrWhiteSpace(settings["privateKey"].ToString()))
-                    ? settings["primaryPool"].ToString()
-                    : settings["web3api"].ToString();
+                if (settings != null)
+                {
+                    MinerReport.Summary.MinerAddress = settings["minerAddress"].ToString();
+                    MinerReport.Summary.MiningURL = (string.IsNullOrWhiteSpace(settings["privateKey"].ToString()))
+                        ? settings["primaryPool"].ToString()
+                        : settings["web3api"].ToString();
+                }
             });
         }
 
