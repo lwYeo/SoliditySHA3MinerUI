@@ -135,12 +135,13 @@
                             Width="80"
                             Height="26"
                             FontSize="10"
+                            VerticalAlignment="Top"
                             Style="{DynamicResource AccentedSquareButtonStyle}"
                             Click="btnClearLogs_Click">
                         Clear Logs
                         <Button.RenderTransform>
                             <TranslateTransform X="210"
-                                                Y="-253" />
+                                                Y="-32" />
                         </Button.RenderTransform>
                     </Button>
                     <Controls:ToggleSwitch Name="tswLogAutoScroll"
@@ -157,7 +158,8 @@
                         </Controls:ToggleSwitch.RenderTransform>
                     </Controls:ToggleSwitch>
                     <RichTextBox Name="rtbLogs"
-                                 IsReadOnly="True">
+                                 IsReadOnly="True"
+                                 VerticalScrollBarVisibility="Visible">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">
                                 <Setter Property="Margin" Value="0" />
