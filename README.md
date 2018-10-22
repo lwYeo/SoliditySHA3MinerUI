@@ -38,4 +38,7 @@ You will/may need update the following fields as well:
  - privateKey
  - gasToMine
  - gasLimit
- 
+
+#### Libraries are included in the Software under the following license terms:
+
+    Json.NET [https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md]
