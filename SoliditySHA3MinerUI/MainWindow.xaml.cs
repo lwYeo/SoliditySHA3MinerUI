@@ -350,6 +350,8 @@ namespace SoliditySHA3MinerUI
         {
             if (string.IsNullOrWhiteSpace(_minerDownloadURL)) return;
 
+            StickyTriggerLaunch = true;
+
             await StopMiner();
 
             await SaveSettings();
