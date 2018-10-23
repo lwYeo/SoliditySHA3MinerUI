@@ -257,7 +257,11 @@ namespace SoliditySHA3MinerUI
             {
                 Task.Factory.StartNew(() =>
                 {
-                    this.BeginInvoke(() => tswLaunch.IsChecked = false);
+                    this.BeginInvoke(() =>
+                    {
+                        StickyTriggerLaunch = true;
+                        tswLaunch.IsChecked = false;
+                    });
                 });
                 _isClosing = true;
                 e.Cancel = true;
@@ -362,6 +366,8 @@ namespace SoliditySHA3MinerUI
         private async void retUIVersion_OnMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_uiInstallerDownloadURL)) return;
+
+            StickyTriggerLaunch = true;
 
             await StopMiner();
 
