@@ -410,9 +410,14 @@ namespace SoliditySHA3MinerUI
         private async void tswLaunch_IsCheckedChanged(object sender, EventArgs e)
         {
             if ((bool)tswLaunch.IsChecked)
-                await LaunchMiner();
-            else
-                await StopMiner();
+            {
+                if (StickyTriggerLaunch)
+                    await LaunchMiner(false);
+                else
+                    await LaunchMiner(true);
+            }
+            else { await StopMiner(); }
+              
 
             if (MinerInstance?.IsRunning ?? false)
             {
@@ -651,17 +656,22 @@ namespace SoliditySHA3MinerUI
                 Helper.Processor.ShowMessageBox("Error downloading miner", "Downloaded archive missing");
                 return;
             }
-            else if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath.FullName, SoliditySHA3MinerUI.MinerInstance.MinerDirectory.FullName))
+            else
             {
                 var oldSettings = _savedSettings?.DeepClone();
 
-                _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
+                if (Helper.FileSystem.UnzipMinerArchrive(archiveFilePath.FullName, SoliditySHA3MinerUI.MinerInstance.MinerDirectory.FullName))
+                {
+                    _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
 
-                Helper.Processor.UpdateSettings(oldSettings, _savedSettings);
+                    Helper.Processor.UpdateSettings(oldSettings, _savedSettings);
 
-                InitializeSettingFileWatcher();
+                    Helper.FileSystem.SerializeToFile(_savedSettings, SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
 
-                _checkMinerVersionTimer_Elapsed(this, null);
+                    InitializeSettingFileWatcher();
+
+                    _checkMinerVersionTimer_Elapsed(this, null);
+                }
             }
         }
 
@@ -810,7 +820,7 @@ namespace SoliditySHA3MinerUI
 
         #region Launch Process
         
-        private async Task LaunchMiner()
+        private async Task LaunchMiner(bool keepLogs)
         {
             ProgressDialogController controller = null;
             try
@@ -826,11 +836,13 @@ namespace SoliditySHA3MinerUI
                 controller.SetIndeterminate();
                 await Task.Yield();
                 await Task.Delay(200);
+                
+                if (!keepLogs)
+                    rtbLogs.Document.Blocks.Clear();
 
-                rtbLogs.Document.Blocks.Clear();
                 _checkConnectionTimer_Elapsed(this, null);
 
-                MinerInstance = new MinerInstance(Properties.Settings.Default.PreLaunchScript);
+                MinerInstance = new MinerInstance(Properties.Settings.Default.PreLaunchScript, (uint)(rtbLogs.Document.Blocks.Count()));
                 MinerInstance.Exited += _minerInstance_Exited;
                 MinerInstance.OnLogUpdated += _minerInstance_OnLogUpdated;
                 MinerInstance.WatchDogInterval = Properties.Settings.Default.StatusInterval;
@@ -1066,14 +1078,14 @@ namespace SoliditySHA3MinerUI
         {
             if (Dispatcher.CheckAccess())
             {
+                _savedSettings = Helper.FileSystem.DeserializeFromFile(settingsPath);
+
                 trvSettings.ItemsSource = null;
                 trvSettings.Items.Clear();
 
                 if (_savedSettings != null)
-                {
-                    _savedSettings = Helper.FileSystem.DeserializeFromFile(SoliditySHA3MinerUI.MinerInstance.MinerSettingsPath.FullName);
                     trvSettings.ItemsSource = _savedSettings.DeepClone();
-                }
+
                 _isSettingsChanged = false;
 
                 if (!(bool)tswLaunch.IsChecked)

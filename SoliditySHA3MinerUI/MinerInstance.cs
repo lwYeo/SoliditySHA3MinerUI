@@ -155,10 +155,15 @@ namespace SoliditySHA3MinerUI
 
         #endregion IMinerInstance
 
-        public MinerInstance(string preLaunchScript)
+        public MinerInstance(string preLaunchScript, uint prependLogLinesCount)
         {
-            _loggingLock = new object();
             MaxLogLines = 1000;
+            _loggingLock = new object();
+            _loggedLinesCount = prependLogLinesCount;
+
+            for (var i = 0; i < prependLogLinesCount; i++)
+                Log += Environment.NewLine;
+
             OutputDataReceived += MinerInstance_OutputDataReceived;
             ErrorDataReceived += MinerInstance_ErrorDataReceived;
             try
