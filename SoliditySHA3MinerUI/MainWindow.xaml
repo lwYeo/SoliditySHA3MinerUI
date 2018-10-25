@@ -555,11 +555,13 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                VerticalAlignment="Top"
                                Margin="235,39,0,0"
                                Text="Miner Address: " />
-                    <TextBlock Name="txbURL"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="42,39,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.MiningURL}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbURL"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   MaxWidth="180"
+                                                   Margin="42,39,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.MiningURL}"
+                                                   TextTrimming="CharacterEllipsis" />
                     <TextBlock Name="txbMinerAddress"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
