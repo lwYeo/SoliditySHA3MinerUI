@@ -188,7 +188,7 @@ namespace SoliditySHA3MinerUI.API
                     MinerReport.Summary.MinerAddress = jAPI["MinerAddress"]?.ToString();
                     MinerReport.Summary.MiningURL = jAPI["MiningURL"]?.ToString();
                     MinerReport.Summary.CurrentChallenge = jAPI["CurrentChallenge"]?.ToString();
-                    MinerReport.Summary.CurrentDifficulty = jAPI["CurrentDifficulty"]?.ToObject<uint>() ?? 0;
+                    MinerReport.Summary.CurrentDifficulty = jAPI["CurrentDifficulty"]?.ToObject<ulong>() ?? 0;
                     MinerReport.Summary.AcceptedShares = jAPI["AcceptedShares"]?.ToObject<uint>() ?? 0;
                     MinerReport.Summary.RejectedShares = jAPI["RejectedShares"]?.ToObject<uint>() ?? 0;
                     MinerReport.Summary.LastSubmitLatencyMS = jAPI["LastSubmitLatencyMS"]?.ToObject<int>() ?? -1;
