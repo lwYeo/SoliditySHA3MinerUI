@@ -530,7 +530,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     Margin="150,10,0,0">
                 <Grid Name="grdPoolNetwork">
                     <Rectangle Name="retConnection"
-                               Margin="140,11,470,72"
+                               Margin="140,11,470,73"
                                Fill="{DynamicResource GrayNormalBrush}">
                         <Rectangle.OpacityMask>
                             <VisualBrush Visual="{iconPacks:Modern Kind=NetworkDisconnect}" />
@@ -553,7 +553,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <TextBlock Name="txbMinerAddressLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Margin="235,39,0,0"
+                               Margin="230,39,0,0"
                                Text="Miner Address: " />
                     <app:TextBlockToolTipOnTrimmed x:Name="txbURL"
                                                    HorizontalAlignment="Left"
@@ -562,11 +562,11 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                                    Margin="42,39,0,0"
                                                    Text="{Binding Path= MinerProcessor.MinerReport.Summary.MiningURL}"
                                                    TextTrimming="CharacterEllipsis" />
-                    <TextBlock Name="txbMinerAddress"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="323,39,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.MinerAddress}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbMinerAddress"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Margin="318,39,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.MinerAddress}" />
                     <TextBlock Name="txbCurrentDifficultyLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
@@ -577,36 +577,36 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                VerticalAlignment="Top"
                                Margin="10,81,0,0"
                                Text="Current Challenge: " />
-                    <TextBlock Name="txbCurrentDifficulty"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="117,60,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentDifficulty_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbCurrentDifficulty"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Margin="117,60,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentDifficulty_String}" />
                     <TextBlock Name="txbLastSubmitLatencyLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Margin="235,60,0,0"
+                               Margin="230,60,0,0"
                                Text="Last Submit Latency: " />
-                    <TextBlock Name="txbLastSubmitLatency"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="352,60,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.LastSubmitLatencyMS_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbLastSubmitLatency"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Margin="347,60,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.LastSubmitLatencyMS_String}" />
                     <TextBlock Name="txbLatencyLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
                                Margin="470,60,0,0"
                                Text="Latency: " />
-                    <TextBlock Name="txbLatency"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="521,60,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.LatencyMS_String}" />
-                    <TextBlock Name="txbCurrentChallenge"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="117,81,0,0"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentChallenge}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbLatency"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Margin="521,60,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.LatencyMS_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbCurrentChallenge"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Margin="117,81,0,0"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.CurrentChallenge}" />
                 </Grid>
             </Border>
             <Border Name="brdSummary"
@@ -644,30 +644,30 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                VerticalAlignment="Top"
                                Margin="10,87,0,0"
                                Text="Luck" />
-                    <TextBlock Name="txbHashrateLocal"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="63"
-                               Margin="60,55,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.TotalHashRate_String}" />
-                    <TextBlock Name="txbHashrateEffective"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="63"
-                               Margin="60,71,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.EffectiveHashRate_String}" />
-                    <TextBlock Name="txbHashrateLuck"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="63"
-                               Margin="60,87,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.HashRateLuck_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbHashrateLocal"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="63"
+                                                   Margin="60,55,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.TotalHashRate_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbHashrateEffective"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="63"
+                                                   Margin="60,71,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.EffectiveHashRate_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbHashrateLuck"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="63"
+                                                   Margin="60,87,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.HashRateLuck_String}" />
                     <TextBlock Name="txbSubmissionLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
@@ -684,71 +684,71 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                                VerticalAlignment="Top"
                                Margin="10,145,0,0"
                                Text="Rejected" />
-                    <TextBlock Name="txbSubmission"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="32"
-                               Margin="91,110,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.SubmissionRate_String}" />
-                    <TextBlock Name="txbAcceptedShares"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="58"
-                               Margin="65,128,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.AcceptedShares_String}" />
-                    <TextBlock Name="txbRejectedShares"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="58"
-                               Margin="65,145,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.RejectedShares_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbSubmission"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="32"
+                                                   Margin="91,110,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.SubmissionRate_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbAcceptedShares"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="58"
+                                                   Margin="65,128,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.AcceptedShares_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbRejectedShares"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="58"
+                                                   Margin="65,145,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.RejectedShares_String}" />
                     <TextBlock Name="txbUptimeLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
                                Margin="10,172,0,0"
                                Text="Uptime" />
-                    <TextBlock Name="txbUptime"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="69"
-                               Margin="54,173,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.Uptime_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbUptime"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="69"
+                                                   Margin="54,173,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.Uptime_String}" />
                     <TextBlock Name="txbCpuLoadLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
                                Margin="10,192,0,0"
                                Text="CPU Load"
                                ToolTip="CPU average load" />
-                    <TextBlock Name="txbCpuLoad"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="50"
-                               Margin="73,193,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.CpuLoad_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbCpuLoad"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="50"
+                                                   Margin="73,193,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.CpuLoad_String}" />
                     <TextBlock Name="txbMaxGPUTempLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
                                Margin="10,212,0,0"
                                Text="GPU Temp."
                                ToolTip="Maximum GPU temperature" />
-                    <TextBlock Name="txbGpuMaxTemperature"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Width="50"
-                               Margin="73,213,0,0"
-                               FontSize="11"
-                               TextAlignment="Right"
-                               Text="{Binding Path= MinerProcessor.MinerReport.Summary.GpuMaxTemperature_String}" />
+                    <app:TextBlockToolTipOnTrimmed x:Name="txbGpuMaxTemperature"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Top"
+                                                   Width="50"
+                                                   Margin="73,213,0,0"
+                                                   FontSize="11"
+                                                   TextAlignment="Right"
+                                                   Text="{Binding Path= MinerProcessor.MinerReport.Summary.GpuMaxTemperature_String}" />
                 </Grid>
             </Border>
             <Border Name="brdDashboard"

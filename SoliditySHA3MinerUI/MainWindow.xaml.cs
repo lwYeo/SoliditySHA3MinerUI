@@ -295,6 +295,10 @@ namespace SoliditySHA3MinerUI
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
+            foLogs.Width = Width - (brdSummary.Width * 1.4);
+            foSettings.Width = Width - (brdSummary.Width * 1.4);
+            foPreLaunchCmd.Width = Width - (brdSummary.Width * 1.4);
+
             Properties.Settings.Default.MaximixeOnApplicationLaunch = (WindowState == WindowState.Maximized);
             Properties.Settings.Default.Save();
         }
