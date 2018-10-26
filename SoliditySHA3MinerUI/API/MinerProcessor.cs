@@ -14,7 +14,9 @@ namespace SoliditySHA3MinerUI.API
         private readonly List<Tuple<Process, TimeSpan, DateTime>> _ProcessList;
         private readonly MainWindow _UI;
         private readonly Timer _timer;
+
         private bool _isReading;
+        private System.Threading.CancellationTokenSource _apiCancellationToken;
 
         public delegate void OnResponseDelegate(MinerReport minerReport);
 
@@ -57,6 +59,26 @@ namespace SoliditySHA3MinerUI.API
         public void Stop()
         {
             _timer.Stop();
+
+            if (_apiCancellationToken != null)
+            {
+                if (_apiCancellationToken.Token.CanBeCanceled && !_apiCancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        var currentToken = _apiCancellationToken;
+                        currentToken.Token.Register(() =>
+                        {
+                            try { currentToken.Dispose(); }
+                            catch { }
+                        });
+                        currentToken.Cancel();
+                    }
+                    catch { }
+                }
+                _apiCancellationToken = null;
+            }
+
             _ProcessList.Clear();
             SetSummaryToPreMineState();
         }
@@ -103,13 +125,15 @@ namespace SoliditySHA3MinerUI.API
             });
         }
 
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        private async void _timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (_isReading) return;
             else _isReading = true;
             try
             {
-                var apiString = Helper.Network.GetHttpResponse(URI);
+                _apiCancellationToken = new System.Threading.CancellationTokenSource();
+
+                var apiString = await Helper.Network.GetHttpResponse(URI, _apiCancellationToken.Token);
                 if (string.IsNullOrWhiteSpace(apiString)) return;
 
                 var jAPI = (JObject)JsonConvert.DeserializeObject(apiString);
@@ -200,7 +224,13 @@ namespace SoliditySHA3MinerUI.API
                 });
             }
             catch { }
-            finally { _isReading = false; }
+            finally
+            {
+                try { _apiCancellationToken.Dispose(); }
+                catch { }
+                _apiCancellationToken = null;
+                _isReading = false;
+            }
         }
 
         #region IDisposable Support
