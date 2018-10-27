@@ -58,7 +58,7 @@ namespace SoliditySHA3MinerUI
 
         public string Log { get; private set; }
 
-        public uint MaxLogLines { get; set; }
+        public uint MaxLogLines => Properties.Settings.Default.MaxLogLines;
 
         private uint _WatchDogInterval;
         public uint WatchDogInterval
@@ -157,7 +157,6 @@ namespace SoliditySHA3MinerUI
 
         public MinerInstance(string preLaunchScript, uint prependLogLinesCount)
         {
-            MaxLogLines = 1000;
             _loggingLock = new object();
             _loggedLinesCount = prependLogLinesCount;
 

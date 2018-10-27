@@ -142,5 +142,17 @@ namespace SoliditySHA3MinerUI.Properties {
                 this["RelaunchAfterCooldown"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4000")]
+        public uint MaxLogLines {
+            get {
+                return ((uint)(this["MaxLogLines"]));
+            }
+            set {
+                this["MaxLogLines"] = value;
+            }
+        }
     }
 }

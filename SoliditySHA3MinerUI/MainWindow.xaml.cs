@@ -295,12 +295,20 @@ namespace SoliditySHA3MinerUI
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
-            foLogs.Width = Width - (brdSummary.Width * 1.4);
-            foSettings.Width = Width - (brdSummary.Width * 1.4);
-            foPreLaunchCmd.Width = Width - (brdSummary.Width * 1.4);
-
             Properties.Settings.Default.MaximixeOnApplicationLaunch = (WindowState == WindowState.Maximized);
             Properties.Settings.Default.Save();
+
+            Task.Factory.StartNew(() =>
+            {
+                this.BeginInvoke(() =>
+                {
+                    var brdPoolNetWork_X = brdPoolNetwork.TransformToAncestor(this).Transform(new Point(0, 0)).X;
+
+                    foLogs.Width = ActualWidth - brdPoolNetWork_X;
+                    foSettings.Width = ActualWidth - brdPoolNetWork_X;
+                    foPreLaunchCmd.Width = ActualWidth - brdPoolNetWork_X;
+                });
+            });
         }
 
         private void btnAbout_Click(object sender, RoutedEventArgs e)
@@ -486,7 +494,7 @@ namespace SoliditySHA3MinerUI
 
         private async void foSettings_IsOpenChanged(object sender, RoutedEventArgs e)
         {
-            foSettings.Width = Width - (brdSummary.Width * 1.4);
+            foSettings.Width = ActualWidth - brdPoolNetwork.TransformToAncestor(this).Transform(new Point(0, 0)).X;
 
             if (foSettings.IsOpen)
                 InitializeSettingFileWatcher();
@@ -496,12 +504,12 @@ namespace SoliditySHA3MinerUI
 
         private void foLogs_IsOpenChanged(object sender, RoutedEventArgs e)
         {
-            foLogs.Width = Width - (brdSummary.Width * 1.4);
+            foLogs.Width = ActualWidth - brdPoolNetwork.TransformToAncestor(this).Transform(new Point(0, 0)).X;
         }
 
         private async void foPreLaunchCmd_IsOpenChanged(object sender, RoutedEventArgs e)
         {
-            foPreLaunchCmd.Width = Width - (brdSummary.Width * 1.4);
+            foPreLaunchCmd.Width = ActualWidth - brdPoolNetwork.TransformToAncestor(this).Transform(new Point(0, 0)).X;
 
             if (foPreLaunchCmd.IsOpen || !_isPreLaunchChanged) return;
 

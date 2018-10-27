@@ -32,5 +32,8 @@
     <Setting Name="RelaunchAfterCooldown" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
     </Setting>
+    <Setting Name="MaxLogLines" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">4000</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
