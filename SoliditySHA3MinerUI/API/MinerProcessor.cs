@@ -110,6 +110,7 @@ namespace SoliditySHA3MinerUI.API
                 MinerReport.Summary.CurrentDifficulty = 0;
                 MinerReport.Summary.AcceptedShares = 0;
                 MinerReport.Summary.RejectedShares = 0;
+                MinerReport.Summary.EstimateTimeLeftToSolveBlock = 0;
                 MinerReport.Summary.EffectiveHashRate = -1;
                 MinerReport.Summary.TotalHashRate = -1;
                 MinerReport.Summary.GpuMaxTemperature = int.MinValue;
@@ -217,6 +218,7 @@ namespace SoliditySHA3MinerUI.API
                     MinerReport.Summary.RejectedShares = jAPI["RejectedShares"]?.ToObject<uint>() ?? 0;
                     MinerReport.Summary.LastSubmitLatencyMS = jAPI["LastSubmitLatencyMS"]?.ToObject<int>() ?? -1;
                     MinerReport.Summary.LatencyMS = jAPI["LatencyMS"]?.ToObject<int>() ?? -1;
+                    MinerReport.Summary.EstimateTimeLeftToSolveBlock = jAPI["EstimateTimeLeftToSolveBlock"]?.ToObject<ulong>() ?? 0;
                     MinerReport.Summary.EffectiveHashRate = jAPI["EffectiveHashRate"]?.ToObject<decimal>() ?? -1;
                     MinerReport.Summary.TotalHashRate = jAPI["TotalHashRate"]?.ToObject<decimal>() ?? -1;
 

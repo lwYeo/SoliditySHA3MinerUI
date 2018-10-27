@@ -78,6 +78,41 @@ namespace SoliditySHA3MinerUI.API
                 : ("--");
         }
 
+        private ulong _EstimateTimeLeftToSolveBlock;
+
+        public ulong EstimateTimeLeftToSolveBlock
+        {
+            get => _EstimateTimeLeftToSolveBlock;
+            set
+            {
+                _EstimateTimeLeftToSolveBlock = value;
+                OnPropertyChanged("EstimateTimeLeftToSolveBlock");
+                OnPropertyChanged("EstimateTimeLeftToSolveBlock_String");
+            }
+        }
+
+        public string EstimateTimeLeftToSolveBlock_String
+        {
+            get
+            {
+                if (_EstimateTimeLeftToSolveBlock == 0)
+                    return "--d --h --m --s";
+
+                var seconds = _EstimateTimeLeftToSolveBlock;
+
+                var days = (uint)Math.Floor(seconds / 60 / 60 / 24d);
+                seconds -= ((ulong)days * 60 * 60 * 24);
+
+                var hours = (uint)Math.Floor(seconds / 60 / 60d);
+                seconds -= (hours * 60 * 60);
+
+                var minutes = (uint)Math.Floor(seconds / 60d);
+                seconds -= (minutes * 60);
+                
+                return string.Format("{0:00}d {1:00}h {2:00}m {3:00}s", days, hours, minutes, seconds);
+            }
+        }
+
         private decimal _EffectiveHashRate;
 
         public decimal EffectiveHashRate

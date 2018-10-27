@@ -10,6 +10,7 @@ namespace SoliditySHA3MinerUI
     {
         public TextBlockToolTipOnTrimmed()
         {
+            TextTrimming = TextTrimming.CharacterEllipsis;
             SetBinding(ToolTipProperty, new Binding("Text") { Source = this });
         }
 
