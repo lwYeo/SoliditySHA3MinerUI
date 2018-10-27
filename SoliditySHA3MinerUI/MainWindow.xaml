@@ -580,7 +580,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <app:TextBlockToolTipOnTrimmed x:Name="txbURL"
                                                    HorizontalAlignment="Left"
                                                    VerticalAlignment="Top"
-                                                   Width="200"
+                                                   Width="205"
                                                    Margin="40,39,0,0"
                                                    FontSize="11"
                                                    Text="{Binding Path= MinerProcessor.MinerReport.Summary.MiningURL}" />
@@ -605,9 +605,9 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <TextBlock Name="txbTimeLeftToSolveBlockLabel"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Margin="188,60,0,0"
+                               Margin="190,60,0,0"
                                FontSize="11"
-                               Text="Solve Time Left: "
+                               Text="Solution ETA: "
                                ToolTip="Based on estimated solve time" />
                     <app:TextBlockToolTipOnTrimmed x:Name="txbCurrentDifficulty"
                                                    HorizontalAlignment="Left"
@@ -625,7 +625,7 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <TextBlock Name="txbTimeLeftToSolveBlock"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Margin="268,60,0,0"
+                               Margin="260,60,0,0"
                                FontSize="11"
                                Text="{Binding Path= MinerProcessor.MinerReport.Summary.EstimateTimeLeftToSolveBlock_String}" />
                     <TextBlock Name="txbLastSubmitLatencyLabel"

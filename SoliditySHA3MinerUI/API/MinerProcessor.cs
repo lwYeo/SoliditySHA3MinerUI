@@ -218,7 +218,7 @@ namespace SoliditySHA3MinerUI.API
                     MinerReport.Summary.RejectedShares = jAPI["RejectedShares"]?.ToObject<uint>() ?? 0;
                     MinerReport.Summary.LastSubmitLatencyMS = jAPI["LastSubmitLatencyMS"]?.ToObject<int>() ?? -1;
                     MinerReport.Summary.LatencyMS = jAPI["LatencyMS"]?.ToObject<int>() ?? -1;
-                    MinerReport.Summary.EstimateTimeLeftToSolveBlock = jAPI["EstimateTimeLeftToSolveBlock"]?.ToObject<ulong>() ?? 0;
+                    MinerReport.Summary.EstimateTimeLeftToSolveBlock = jAPI["EstimateTimeLeftToSolveBlock"]?.ToObject<long>() ?? 0;
                     MinerReport.Summary.EffectiveHashRate = jAPI["EffectiveHashRate"]?.ToObject<decimal>() ?? -1;
                     MinerReport.Summary.TotalHashRate = jAPI["TotalHashRate"]?.ToObject<decimal>() ?? -1;
 
