@@ -734,8 +734,8 @@ nvidiaInspector.exe %GPU0% %GPU1% %GPU2%" />
                     <app:TextBlockToolTipOnTrimmed x:Name="txbSubmission"
                                                    HorizontalAlignment="Left"
                                                    VerticalAlignment="Top"
-                                                   Width="32"
-                                                   Margin="91,110,0,0"
+                                                   Width="36"
+                                                   Margin="88,111,0,0"
                                                    FontSize="11"
                                                    TextAlignment="Right"
                                                    Text="{Binding Path= MinerProcessor.MinerReport.Summary.SubmissionRate_String}" />

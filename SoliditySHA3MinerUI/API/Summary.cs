@@ -97,8 +97,7 @@ namespace SoliditySHA3MinerUI.API
             {
                 if (_EstimateTimeLeftToSolveBlock == 0)
                     return "--d --h --m --s";
-
-                var magnitude = (_EstimateTimeLeftToSolveBlock < 0) ? "- " : string.Empty;
+                
                 var seconds = (ulong)Math.Abs(_EstimateTimeLeftToSolveBlock);
 
                 var days = (ulong)Math.Floor(seconds / 60 / 60 / 24d);
@@ -109,8 +108,11 @@ namespace SoliditySHA3MinerUI.API
 
                 var minutes = (uint)Math.Floor(seconds / 60d);
                 seconds -= (minutes * 60);
-                
-                return string.Format("{0}{1:00}d {2:00}h {3:00}m {4:00}s", magnitude, days, hours, minutes, seconds);
+
+                if (_EstimateTimeLeftToSolveBlock < 0)
+                    return string.Format("-({0:00}d {1:00}h {2:00}m {3:00}s)", days, hours, minutes, seconds);
+                else
+                    return string.Format("{0:00}d {1:00}h {2:00}m {3:00}s", days, hours, minutes, seconds);
             }
         }
 
