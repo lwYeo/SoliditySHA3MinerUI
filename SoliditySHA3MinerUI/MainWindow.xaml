@@ -131,20 +131,37 @@
                              HorizontalContentAlignment="Right"
                              IsOpenChanged="foLogs_IsOpenChanged">
                 <Grid Name="grdLogs">
+                    <Controls:ToggleSwitch Name="tswShowPreviousErrors"
+                                           VerticalAlignment="Top"
+                                           HorizontalAlignment="Right"
+                                           Content="Show previous errors"
+                                           IsChecked="False"
+                                           IsCheckedChanged="tswShowPreviousErrors_IsCheckedChanged">
+                        <Controls:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="0.7"
+                                                ScaleY="0.67" />
+                                <TranslateTransform X="-224"
+                                                    Y="-30" />
+                            </TransformGroup>
+                        </Controls:ToggleSwitch.RenderTransform>
+                    </Controls:ToggleSwitch>
                     <Button Name="btnClearLogs"
                             Width="80"
                             Height="26"
                             FontSize="10"
                             VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
                             Style="{DynamicResource AccentedSquareButtonStyle}"
                             Click="btnClearLogs_Click">
                         Clear Logs
                         <Button.RenderTransform>
-                            <TranslateTransform X="210"
+                            <TranslateTransform X="-164"
                                                 Y="-32" />
                         </Button.RenderTransform>
                     </Button>
                     <Controls:ToggleSwitch Name="tswLogAutoScroll"
+                                           VerticalAlignment="Top"
                                            HorizontalAlignment="Right"
                                            Content="Auto scroll logs"
                                            IsChecked="True">
@@ -152,11 +169,21 @@
                             <TransformGroup>
                                 <ScaleTransform ScaleX="0.7"
                                                 ScaleY="0.67" />
-                                <TranslateTransform X="50"
+                                <TranslateTransform X="48"
                                                     Y="-30" />
                             </TransformGroup>
                         </Controls:ToggleSwitch.RenderTransform>
                     </Controls:ToggleSwitch>
+                    <RichTextBox Name="rtbErrorLogs"
+                                 IsReadOnly="True"
+                                 VerticalScrollBarVisibility="Visible"
+                                 Visibility="Hidden">
+                        <RichTextBox.Resources>
+                            <Style TargetType="{x:Type Paragraph}">
+                                <Setter Property="Margin" Value="0" />
+                            </Style>
+                        </RichTextBox.Resources>
+                    </RichTextBox>
                     <RichTextBox Name="rtbLogs"
                                  IsReadOnly="True"
                                  VerticalScrollBarVisibility="Visible">

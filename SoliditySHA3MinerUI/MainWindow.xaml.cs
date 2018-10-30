@@ -343,6 +343,8 @@ namespace SoliditySHA3MinerUI
                 MinerInstance?.ClearLogs();
             else
                 rtbLogs.Document.Blocks.Clear();
+
+            rtbErrorLogs.Document.Blocks.Clear();
         }
 
         private async void btnResetSettings_OnClick(object sender, RoutedEventArgs e)
@@ -528,7 +530,18 @@ namespace SoliditySHA3MinerUI
         {
             StickyTriggerLaunch = true;
         }
-        
+
+        private void tswShowPreviousErrors_IsCheckedChanged(object sender, EventArgs e)
+        {
+            rtbLogs.Visibility = (tswShowPreviousErrors.IsChecked ?? false)
+                               ? Visibility.Hidden
+                               : Visibility.Visible;
+
+            rtbErrorLogs.Visibility = (tswShowPreviousErrors.IsChecked ?? false)
+                                    ? Visibility.Visible
+                                    : Visibility.Hidden;
+        }
+
         #endregion Control Events
 
         #region Event Handlers
@@ -567,19 +580,51 @@ namespace SoliditySHA3MinerUI
                 if (removedLogIndex > 0)
                     rtbLogs.Document.Blocks.Remove(rtbLogs.Document.Blocks.FirstBlock);
 
-                var newParagraph = new Paragraph();
-                newParagraph.Inlines.Add(newLog);
-                newParagraph.Foreground = (newLog.IndexOf("[ERROR]") > -1)
-                                        ? Brushes.Red
-                                        : (newLog.IndexOf("[WARN]") > -1)
-                                        ? Brushes.Yellow
-                                        : (Brush)FindResource(SystemColors.ControlTextBrushKey);
-
-                rtbLogs.Document.Blocks.Add(newParagraph);
-                if ((bool)tswLogAutoScroll.IsChecked)
+                if (newLog.StartsWith("[") || newLog.StartsWith("***") || rtbLogs.Document.Blocks.Count < 7)
                 {
-                    rtbLogs.CaretPosition = rtbLogs.Document.ContentEnd;
-                    rtbLogs.ScrollToEnd();
+                    var newParagraph = new Paragraph();
+                    newParagraph.Inlines.Add(newLog);
+                    newParagraph.Foreground = (newLog.IndexOf("[ERROR]") > -1)
+                                            ? Brushes.Red
+                                            : (newLog.IndexOf("[WARN]") > -1 || newLog.IndexOf("failed", StringComparison.OrdinalIgnoreCase) > -1)
+                                            ? Brushes.Yellow
+                                            : (Brush)FindResource(SystemColors.ControlTextBrushKey);
+
+                    rtbLogs.Document.Blocks.Add(newParagraph);
+
+                    if ((bool)tswLogAutoScroll.IsChecked)
+                    {
+                        rtbLogs.CaretPosition = rtbLogs.Document.ContentEnd;
+                        rtbLogs.ScrollToEnd();
+                    }
+
+                    if (new Brush[] { Brushes.Red, Brushes.Yellow }.Contains(newParagraph.Foreground))
+                    {
+                        var newErrorParagraph = new Paragraph();
+                        newErrorParagraph.Inlines.Add(newLog);
+                        newErrorParagraph.Foreground = newParagraph.Foreground;
+
+                        rtbErrorLogs.Document.Blocks.Add(newErrorParagraph);
+
+                        if ((bool)tswLogAutoScroll.IsChecked)
+                        {
+                            rtbErrorLogs.CaretPosition = rtbErrorLogs.Document.ContentEnd;
+                            rtbErrorLogs.ScrollToEnd();
+                        }
+                    }
+                }
+                else
+                {
+                    var lastParagraph = rtbLogs.Document.Blocks.LastBlock as Paragraph;
+                    lastParagraph.Inlines.Add(Environment.NewLine);
+                    lastParagraph.Inlines.Add(newLog);
+
+                    if (new Brush[] { Brushes.Red, Brushes.Yellow }.Contains(lastParagraph.Foreground))
+                    {
+                        var lastErrorParagraph = rtbErrorLogs.Document.Blocks.LastBlock as Paragraph;
+                        lastErrorParagraph.Inlines.Add(Environment.NewLine);
+                        lastErrorParagraph.Inlines.Add(newLog);
+                    }
                 }
             }
             else
