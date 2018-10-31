@@ -131,21 +131,6 @@
                              HorizontalContentAlignment="Right"
                              IsOpenChanged="foLogs_IsOpenChanged">
                 <Grid Name="grdLogs">
-                    <Controls:ToggleSwitch Name="tswShowPreviousErrors"
-                                           VerticalAlignment="Top"
-                                           HorizontalAlignment="Right"
-                                           Content="Show previous errors"
-                                           IsChecked="False"
-                                           IsCheckedChanged="tswShowPreviousErrors_IsCheckedChanged">
-                        <Controls:ToggleSwitch.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform ScaleX="0.7"
-                                                ScaleY="0.67" />
-                                <TranslateTransform X="-224"
-                                                    Y="-30" />
-                            </TransformGroup>
-                        </Controls:ToggleSwitch.RenderTransform>
-                    </Controls:ToggleSwitch>
                     <Button Name="btnClearLogs"
                             Width="80"
                             Height="26"
@@ -174,25 +159,47 @@
                             </TransformGroup>
                         </Controls:ToggleSwitch.RenderTransform>
                     </Controls:ToggleSwitch>
-                    <RichTextBox Name="rtbErrorLogs"
-                                 IsReadOnly="True"
-                                 VerticalScrollBarVisibility="Visible"
-                                 Visibility="Hidden">
-                        <RichTextBox.Resources>
-                            <Style TargetType="{x:Type Paragraph}">
-                                <Setter Property="Margin" Value="0" />
-                            </Style>
-                        </RichTextBox.Resources>
-                    </RichTextBox>
-                    <RichTextBox Name="rtbLogs"
+                    <TabControl Name="tcLogs">
+                        <TabItem Name="tiAlLogs"
+                                 Header="All Logs"
+                                 Controls:ControlsHelper.HeaderFontSize="16">
+                            <RichTextBox Name="rtbLogs"
                                  IsReadOnly="True"
                                  VerticalScrollBarVisibility="Visible">
-                        <RichTextBox.Resources>
-                            <Style TargetType="{x:Type Paragraph}">
-                                <Setter Property="Margin" Value="0" />
-                            </Style>
-                        </RichTextBox.Resources>
-                    </RichTextBox>
+                                <RichTextBox.Resources>
+                                    <Style TargetType="{x:Type Paragraph}">
+                                        <Setter Property="Margin" Value="0" />
+                                    </Style>
+                                </RichTextBox.Resources>
+                            </RichTextBox>
+                        </TabItem>
+                        <TabItem Name="tiTransactions"
+                                 Header="Transactions"
+                                 Controls:ControlsHelper.HeaderFontSize="16">
+                            <RichTextBox Name="rtbTransactions"
+                                 IsReadOnly="True"
+                                 VerticalScrollBarVisibility="Visible">
+                                <RichTextBox.Resources>
+                                    <Style TargetType="{x:Type Paragraph}">
+                                        <Setter Property="Margin" Value="0" />
+                                    </Style>
+                                </RichTextBox.Resources>
+                            </RichTextBox>
+                        </TabItem>
+                        <TabItem Name="tiErrorsWarnings"
+                                 Header="Errors and Warnings"
+                                 Controls:ControlsHelper.HeaderFontSize="16">
+                            <RichTextBox Name="rtbErrorLogs"
+                                 IsReadOnly="True"
+                                 VerticalScrollBarVisibility="Visible">
+                                <RichTextBox.Resources>
+                                    <Style TargetType="{x:Type Paragraph}">
+                                        <Setter Property="Margin" Value="0" />
+                                    </Style>
+                                </RichTextBox.Resources>
+                            </RichTextBox>
+                        </TabItem>
+                    </TabControl>
                 </Grid>
             </Controls:Flyout>
             <Controls:Flyout Name="foSettings"

@@ -531,17 +531,6 @@ namespace SoliditySHA3MinerUI
             StickyTriggerLaunch = true;
         }
 
-        private void tswShowPreviousErrors_IsCheckedChanged(object sender, EventArgs e)
-        {
-            rtbLogs.Visibility = (tswShowPreviousErrors.IsChecked ?? false)
-                               ? Visibility.Hidden
-                               : Visibility.Visible;
-
-            rtbErrorLogs.Visibility = (tswShowPreviousErrors.IsChecked ?? false)
-                                    ? Visibility.Visible
-                                    : Visibility.Hidden;
-        }
-
         #endregion Control Events
 
         #region Event Handlers
@@ -586,7 +575,7 @@ namespace SoliditySHA3MinerUI
                     newParagraph.Inlines.Add(newLog);
                     newParagraph.Foreground = (newLog.IndexOf("[ERROR]") > -1)
                                             ? Brushes.Red
-                                            : (newLog.IndexOf("[WARN]") > -1 || newLog.IndexOf("failed", StringComparison.OrdinalIgnoreCase) > -1)
+                                            : (newLog.IndexOf("[WARN]") > -1)
                                             ? Brushes.Yellow
                                             : (Brush)FindResource(SystemColors.ControlTextBrushKey);
 
@@ -610,6 +599,24 @@ namespace SoliditySHA3MinerUI
                         {
                             rtbErrorLogs.CaretPosition = rtbErrorLogs.Document.ContentEnd;
                             rtbErrorLogs.ScrollToEnd();
+                        }
+                    }
+
+                    var txKeywords = new string[] { "transaction", "submit", "transfer", "reward" };
+                    if (txKeywords.Any(k => newLog.IndexOf(k, StringComparison.OrdinalIgnoreCase) > -1))
+                    {
+                        var newTxParagraph = new Paragraph();
+                        newTxParagraph.Inlines.Add(newLog);
+                        newTxParagraph.Foreground = (newLog.IndexOf("fail", StringComparison.OrdinalIgnoreCase) > -1)
+                                                  ? Brushes.Red
+                                                  : newParagraph.Foreground;
+
+                        rtbTransactions.Document.Blocks.Add(newTxParagraph);
+
+                        if ((bool)tswLogAutoScroll.IsChecked)
+                        {
+                            rtbTransactions.CaretPosition = rtbTransactions.Document.ContentEnd;
+                            rtbTransactions.ScrollToEnd();
                         }
                     }
                 }
