@@ -3,7 +3,7 @@ GUI wrapper and updater for [SoliditySHA3Miner](https://github.com/lwYeo/Solidit
 
 Built for Windows 10 x64 with C#.NET Framework 4.6.2 [![Build status](https://lwyeo.visualstudio.com/SoliditySHA3MinerUI/_apis/build/status/SoliditySHA3MinerUI-.NET%20Desktop-CI)](https://lwyeo.visualstudio.com/SoliditySHA3MinerUI/_build/latest?definitionId=1)
 
-### Releases can be found [here](https://github.com/lwYeo/SoliditySHA3MinerUI/releases).
+#### Current latest public release version: [1.0.2](https://github.com/lwYeo/SoliditySHA3MinerUI/releases/latest)
 If you are looking for a console Windows/Linux version, refer to this link [https://github.com/lwYeo/SoliditySHA3Miner/releases]
 
 ![alt text](screenshots/ss3_run.png "SoliditySHA3Miner GUI")

@@ -345,6 +345,7 @@ namespace SoliditySHA3MinerUI
                 rtbLogs.Document.Blocks.Clear();
 
             rtbErrorLogs.Document.Blocks.Clear();
+            rtbTransactions.Document.Blocks.Clear();
         }
 
         private async void btnResetSettings_OnClick(object sender, RoutedEventArgs e)
