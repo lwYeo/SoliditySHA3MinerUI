@@ -603,7 +603,7 @@ namespace SoliditySHA3MinerUI
                         }
                     }
 
-                    var txKeywords = new string[] { "transaction", "submit", "transfer", "reward" };
+                    var txKeywords = new string[] { "transaction", "submit", "transfer", "reward", "gas " };
                     if (txKeywords.Any(k => newLog.IndexOf(k, StringComparison.OrdinalIgnoreCase) > -1))
                     {
                         var newTxParagraph = new Paragraph();
@@ -930,12 +930,24 @@ namespace SoliditySHA3MinerUI
             finally
             {
                 var waitSeconds = 0;
+                var userCancelWait = false;
+
                 do // Wait for API to send data
                 {
                     await Task.Delay(1000);
                     waitSeconds++;
+
+                    if (waitSeconds == 10)
+                    {
+                        controller.SetCancelable(true);
+                        controller.Canceled += (s, e) =>
+                        {
+                            userCancelWait = true;
+                            StickyTriggerLaunch = true;
+                        };
+                    }
                 }
-                while ((bool)tswLaunch.IsChecked && !_isAPIReceived && waitSeconds < 45);
+                while ((bool)tswLaunch.IsChecked && !_isAPIReceived && waitSeconds < 60 && !userCancelWait);
 
                 if (controller != null && controller.IsOpen) await controller.CloseAsync();
 
