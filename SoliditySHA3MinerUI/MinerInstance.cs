@@ -178,9 +178,7 @@ namespace SoliditySHA3MinerUI
                         StartInfo = new ProcessStartInfo
                         {
                             WorkingDirectory = PreLaunchPath.DirectoryName,
-                            FileName = PreLaunchPath.Name,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
+                            FileName = PreLaunchPath.FullName,
                             UseShellExecute = false,
                             CreateNoWindow = true
                         }
